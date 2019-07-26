@@ -1,0 +1,150 @@
+------------------------- SOFTWARE -------------------------
+
+ V  2 camera RGB/depth stream
+(X) Get frames from rosbag
+ V  Map depth to color
+(x) Sync between 2 pairs
+    Save RGB/depth frames as PNG
+    Set camera baseline
+    Get intrinsic parameters (Matlab/OpenCV)
+   -Stream 30fps (currently 640x480)
+   -Option to stream every fps smoothly (ie 60fps)
+   -Master/slave synchronization in software
+   -Exposure, etc
+   -Output point cloud directly (not 30 fps)
+
+------------------------- SDK Examples Used -------------------------
+
+rs-multicam.cpp
+rs-align.cpp
+rs-save-to-disk.cpp
+
+------------------------- VARIABLES -------------------------
+
+fs		rs2::frameset
+new_frames	size 2
+
+------------------------- VISUAL STUDIO 2019 C++ -------------------------
+
+Build project --> Add source and header files
+Add files by right clicking under project and adding, not Ctrl+N
+
+Compile : convert high level code to machine level code
+Build   : convert high level language to an executable (compiling and linking)
+
+Build Solution    : builds everything
+Build hello-world : builds single project
+Compile           : builds single file
+
+Change start-up project --> right click another project and click Set as Startup Project
+
+Add path to headers with:
+Project >> align-save properties >> C/C++ >> General >> Additional Include Directories
+
+------------------------- VCPKG -------------------------
+
+Open cmd window
+vcpkg search headerfile
+vcpkg install headerfile
+vcpkg list
+
+------------------------- C++ Notes -------------------------
+
+------------------------- Struct -------------------------
+
+struct Food{
+  int Weight;
+  float Price;
+};
+int main(){
+  Food Apple;
+  Food pear;
+  Apple.Weight = 90;
+  Apple.Price = 9.99;
+  Pear.Weight = 80;
+  Pear.Price = 99.99;
+  cout << "Apple weight: " << Apple.Weight << endl << "Apple price: " << Apple.Price << endl << endl;
+  cout << "Pear weight: " << Pear.Weight << endl << "Pear price: " << Pear.Price << endl << endl;
+
+------------------------- push_back, emplace_back -------------------------
+
+list.push_back(40);    adds 40 to end of vector list
+list.emplace_back(40); adds 40 to end of vector list
+list.pop_back();       removes last item off vector
+
+------------------------- References -------------------------
+
+int x = 10;	       ref and x are same variable
+int& ref = x;
+
+// References can modify the passed parameters in a function
+void swap (int& first, int& second)
+{
+  int temp = first;
+  first = second;
+  second = temp;
+}
+int main()
+{
+  int a = 2, b = 3;
+  swap (a, b);
+  cout << a << " " << b;
+  return 0;
+}
+
+// Avoiding copy of large structures
+struct Student {
+  string name;
+  string address;
+  int rollNo;
+}
+// Without &, new copy of student object is created
+void print(const Student &s)
+{
+  cout << s.name << " " << s.address << " " << s.rollNo;
+}
+
+// For Each Loops to modify all objects
+int main()
+{
+  vector<int> vect{ 10, 20, 30, 40 };
+  for (int &x : vect)
+    x = x + 5;
+  for (int x : vect)
+    cout << x << " ";
+  return 0;
+}
+
+// Avoid copy of whole object
+int main()
+{
+  vector<string> vect{"geeksforgeeks practice", 
+                   "geeksforgeeks write",
+                   "geeksforgeeks ide"};
+  for (const auto &x : vect)
+    cout << x << endl;
+  return 0;
+}
+
+References cannot be reseated like pointers
+References cannot be NULL like pointers
+References must be initialized when declared unlike pointers
+
+auto		=> will copy the element, but a reference is more efficient
+auto&		=> will only bind to modifiable lvalues
+const auto& 	=> will bind to anything but make it const, giving us const_iterator
+const auto&&	=> will bind to rvalues
+
+------------------------- sprintf -------------------------
+
+
+
+
+
+
+
+
+
+
+
+
