@@ -137,6 +137,7 @@ const auto&&	=> will bind to rvalues
 
 ------------------------- sprintf -------------------------
 
+Used to concatenate strings
 
 
 
