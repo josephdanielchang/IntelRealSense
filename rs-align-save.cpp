@@ -19,20 +19,23 @@ void writeImages(rs2::frameset f, std::string& dir, int count, std::string cam) 
 	// Set up path for images
 	std::stringstream path1, path2, p;
 	char buffer[50];
-	sprintf(buffer, "cam_%s_depth_%05d.png", cam, count);
-	path1 << dir << "\\" << cam << "_intel_rgb" << "\\" << "cam_" << cam << "_rgb" << buffer;
+	//sprintf(buffer, "cam_%s_depth_%05d.png", cam, count);
+	sprintf(buffer, "%05d.png", count);
+	path1 << dir << "\\" << cam << "_intel_rgb" << "\\" << "cam_" << cam << "_rgb_" << buffer;
 	path2 << dir << "\\" << cam << "_intel_depth" << "\\" << "cam_" << cam << "_depth_" << buffer;
 	
-	// Create OpenCV image file
+	// f.get_color_frame.size() may be able to replace Size(640,480) with this later
+	
+	// Create OpenCV image file, 8-bit, unsigned, 3 channels
 	Mat image1(Size(640, 480), CV_8UC3, (void*)f.get_color_frame().get_data(), Mat::AUTO_STEP);
-	Mat image1_copy;
+	Mat image1_bgr;
 
 	// Transform color format
-	cvtColor(image1, image1_copy, COLOR_RGB2BGR);
+	cvtColor(image1, image1_bgr, COLOR_RGB2BGR);
 
-	imwrite(path1.str(), image1_copy);
+	imwrite(path1.str(), image1_bgr);
 
-	// Create OpenCV image file
+	// Create OpenCV image file, 16-bit, unsigned, 1 channel
 	Mat image2(Size(640, 480), CV_16UC1, (void*)f.get_depth_frame().get_data(), Mat::AUTO_STEP);
 
 	imwrite(path2.str(), image2);
@@ -54,7 +57,9 @@ int main(int argc, char* argv[]) try
 	std::string path;
 	bool isLeft						= true;
 	int count = 1;
-
+	std::string l = "left";
+	std::string r = "right";
+		
 	// Create directories to store processed frames
 	for (auto dir : dirs) {									// for 2 directories
 		if ((_access(dir.c_str(), F_OK))) {					// check if directory exists
@@ -113,12 +118,12 @@ int main(int argc, char* argv[]) try
 
 				// Save processed frames to directories
 				if (isLeft) {
-					writeImages(fs[0], dirs[0], count, "left");
-					writeImages(fs[1], dirs[0], count, "left");
+					writeImages(fs[0], dirs[0], count, l);
+					writeImages(fs[1], dirs[0], count, l);
 				}
 				else {
-					writeImages(fs[0], dirs[1], count, "right");
-					writeImages(fs[1], dirs[1], count, "right");
+					writeImages(fs[0], dirs[1], count, r);
+					writeImages(fs[1], dirs[1], count, r);
 				}
 				isLeft = !isLeft;  // toggle is false then true
 
