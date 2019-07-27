@@ -1,4 +1,6 @@
 // Plug left camera to left USB and right camera to right USB
+// Build and run debugger to start recording
+// Press stop debugging to stop recording
 
 #include <librealsense2/rs.hpp>     // Include RealSense Cross Platform API
 #include <opencv2/opencv.hpp>
@@ -23,12 +25,8 @@ void writeImages(rs2::frameset const & f, std::string& dir, int count, std::stri
 	path1 << dir << "\\" << cam << "_rgb" << "\\" << "cam_" << cam << "_rgb_" << buffer;
 	path2 << dir << "\\" << cam << "_intel_depth" << "\\" << "cam_" << cam << "_depth_" << buffer;
 
-	// Extract video frames from frameset
-	rs2::frame f1 = f.get_color_frame();
-	rs2::frame f2 = f.get_depth_frame();
-
 	// Create OpenCV image file, 8-bit, unsigned, 3 channels
-	Mat image1(Size(640, 480), CV_8UC3, (void*)f1.get_data(), Mat::AUTO_STEP);
+	Mat image1(Size(640, 480), CV_8UC3, (void*)f.get_color_frame().get_data(), Mat::AUTO_STEP);
 	Mat image1_bgr;
 
 	// Transform color format
@@ -37,12 +35,12 @@ void writeImages(rs2::frameset const & f, std::string& dir, int count, std::stri
 	imwrite(path1.str(), image1_bgr);
 
 	// Create OpenCV image file, 16-bit, unsigned, 1 channel
-	Mat image2(Size(640, 480), CV_16UC1, (void*)f2.get_data(), Mat::AUTO_STEP);
+	Mat image2(Size(640, 480), CV_16UC1, (void*)f.get_depth_frame().get_data(), Mat::AUTO_STEP);
 
 	imwrite(path2.str(), image2);
 	
 	// Console output
-	std::cout << "Saved " << path2.str() << ' ' << f.get_frame_number() << std::endl;
+	std::cout << f.get_frame_number() << std::endl;
 }
 
 int main(int argc, char* argv[]) try
@@ -101,7 +99,7 @@ int main(int argc, char* argv[]) try
 	// Define object to be used to align to depth to color stream
 	rs2::align align_to_color(RS2_STREAM_COLOR);
 
-	// Capture 30 frames to give autoexposure, etc. a chance to settle
+	// Capture 100 frames to give autoexposure, etc. a chance to settle
 	for (auto i = 0; i < 100; ++i) {
 		for (auto&& pipe : pipelines) pipe.wait_for_frames();
 	}
@@ -122,7 +120,7 @@ int main(int argc, char* argv[]) try
 					writeImages(fs, dirs[0], count, left);
 				}
 				else {
-					writeImages(fs, dirs[0], count, right);
+					writeImages(fs, dirs[1], count, right);
 				}
 
 				isLeft = !isLeft;  // toggle is false then true
