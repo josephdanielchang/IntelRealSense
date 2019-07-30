@@ -24,21 +24,15 @@ void writeImages(rs2::frameset const & f, std::string& dir, int count, std::stri
 	sprintf(buffer, "%05d.png", count);
 	path1 << dir << "\\" << cam << "_rgb" << "\\" << "cam_" << cam << "_rgb_" << buffer;
 	path2 << dir << "\\" << cam << "_intel_depth" << "\\" << "cam_" << cam << "_depth_" << buffer;
-
 	// Create OpenCV image file, 8-bit, unsigned, 3 channels
 	Mat image1(Size(640, 480), CV_8UC3, (void*)f.get_color_frame().get_data(), Mat::AUTO_STEP);
 	Mat image1_bgr;
-
 	// Transform color format
 	cvtColor(image1, image1_bgr, COLOR_RGB2BGR);
-
 	imwrite(path1.str(), image1_bgr);
-
 	// Create OpenCV image file, 16-bit, unsigned, 1 channel
 	Mat image2(Size(640, 480), CV_16UC1, (void*)f.get_depth_frame().get_data(), Mat::AUTO_STEP);
-
 	imwrite(path2.str(), image2);
-	
 	// Console output
 	std::cout << f.get_frame_number() << std::endl;
 }
@@ -55,7 +49,6 @@ int main(int argc, char* argv[]) try
 	std::string subdirs[]			= { "rgb", "intel_depth" };
 	std::string path;
 	bool isLeft						= true;
-	int count = 1;
 	std::string left = "left";
 	std::string right = "right";
 		
@@ -92,17 +85,17 @@ int main(int argc, char* argv[]) try
 		pipe.start(cfg);
 		pipelines.emplace_back(pipe);
 	}
-
 	// We'll keep track for the last frame of each stream available to make the presentation persistent
 	std::map<int, rs2::frame> render_frames;
-
 	// Define object to be used to align to depth to color stream
 	rs2::align align_to_color(RS2_STREAM_COLOR);
-
-	// Capture 100 frames to give autoexposure, etc. a chance to settle
+	// Capture frames to give autoexposure, etc. a chance to settle
 	for (auto i = 0; i < 100; ++i) {
 		for (auto&& pipe : pipelines) pipe.wait_for_frames();
 	}
+
+	rs2::frameset fs;
+	int count = 0;
 
 	// Main app loop
 	while (app) {
@@ -114,32 +107,28 @@ int main(int argc, char* argv[]) try
 			if (pipe.poll_for_frames(&fs)) {
 				// Align newly-arrived frames to color viewport
 				fs = align_to_color.process(fs);
-
-				// Save processed frames to directories
-				if (isLeft) {
-					writeImages(fs, dirs[0], count, left);
+				if (count > 0) {
+					// Save processed frames to directories
+					if (isLeft) {
+						writeImages(fs, dirs[0], count, left);
+					}
+					else {
+						writeImages(fs, dirs[1], count, right);
+					}
 				}
-				else {
-					writeImages(fs, dirs[1], count, right);
-				}
-
 				isLeft = !isLeft;  // toggle is false then true
-
 				// Split rs2::frameset containers into separate frames and store with standard C++ container for later use
 				for (const rs2::frame& f : fs)
 					new_frames.emplace_back(f);
 			}
 		}
-
+		count++;
 		// Convert the newly-arrived frames to render-friendly format
 		for (const auto& frame : new_frames) {
 			render_frames[frame.get_profile().unique_id()] = colorizer.process(frame);
 		}
-
 		// Present all the collected frames with openGl mosaic
 		app.show(render_frames);
-
-		count++;
 	}
 
 	return EXIT_SUCCESS;
