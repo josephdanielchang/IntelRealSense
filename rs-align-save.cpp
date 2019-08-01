@@ -1,7 +1,7 @@
 // Plug left camera to left USB and right camera to right USB
 // Build and run debugger to start recording
 // Press stop debugging to stop recording
-
+// Delete timer in final build
 #include <librealsense2/rs.hpp>     // Include RealSense Cross Platform API
 #include <opencv2/opencv.hpp>
 #include "example.hpp"              // Include short list of convenience functions for OpenGL rendering
@@ -13,28 +13,32 @@
 #include <vector>
 #include <map>
 
+#include <cstdio>   //timer
+#include <ctime>    //timer
+std::clock_t start; //timer
+double duration;    //timer
+
 #define F_OK 0
 
 using namespace cv;
 
+char buffer[50];
+Mat image1_bgr;
+
 void writeImages(rs2::frameset const & f, std::string& dir, int count, std::string cam) {
+	std::stringstream path1, path2;
 	// Set up path for images
-	std::stringstream path1, path2, p;
-	char buffer[50];
 	sprintf(buffer, "%05d.png", count);
 	path1 << dir << "\\" << cam << "_rgb" << "\\" << "cam_" << cam << "_rgb_" << buffer;
 	path2 << dir << "\\" << cam << "_intel_depth" << "\\" << "cam_" << cam << "_depth_" << buffer;
 	// Create OpenCV image file, 8-bit, unsigned, 3 channels
 	Mat image1(Size(640, 480), CV_8UC3, (void*)f.get_color_frame().get_data(), Mat::AUTO_STEP);
-	Mat image1_bgr;
 	// Transform color format
 	cvtColor(image1, image1_bgr, COLOR_RGB2BGR);
 	imwrite(path1.str(), image1_bgr);
 	// Create OpenCV image file, 16-bit, unsigned, 1 channel
 	Mat image2(Size(640, 480), CV_16UC1, (void*)f.get_depth_frame().get_data(), Mat::AUTO_STEP);
 	imwrite(path2.str(), image2);
-	// Console output
-	std::cout << f.get_frame_number() << std::endl;
 }
 
 int main(int argc, char* argv[]) try
@@ -79,8 +83,8 @@ int main(int argc, char* argv[]) try
 		rs2::pipeline pipe(ctx);
 		rs2::config cfg;
 		cfg.enable_device(dev.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER));
-		cfg.enable_stream(RS2_STREAM_DEPTH);
-		cfg.enable_stream(RS2_STREAM_COLOR);
+		cfg.enable_stream(RS2_STREAM_DEPTH, 640, 480);
+		cfg.enable_stream(RS2_STREAM_COLOR, 640, 480);
 		// Start streaming
 		pipe.start(cfg);
 		pipelines.emplace_back(pipe);
@@ -99,6 +103,7 @@ int main(int argc, char* argv[]) try
 
 	// Main app loop
 	while (app) {
+		start = std::clock(); //timer
 		// Collect the new frames from all the connected devices
 		std::vector<rs2::frame> new_frames;
 		for (auto&& pipe : pipelines) {
@@ -129,8 +134,9 @@ int main(int argc, char* argv[]) try
 		}
 		// Present all the collected frames with openGl mosaic
 		app.show(render_frames);
+		duration = (std::clock() - start) / (double)CLOCKS_PER_SEC; //timer
+		std::cout << "printf: " << duration << '\n';				//timer
 	}
-
 	return EXIT_SUCCESS;
 }
 catch (const rs2::error& e) {
