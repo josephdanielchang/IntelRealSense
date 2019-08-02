@@ -12,6 +12,10 @@
 #include <io.h>						// EOF (end of file) is global constant returning -1
 #include <vector>
 #include <map>
+/*
+#include <pcl/point_types.h>
+#include <pcl/filters/passthrough.h>
+*/
 
 #include <cstdio>   //timer
 #include <ctime>    //timer
@@ -22,13 +26,14 @@ double duration;    //timer
 
 using namespace cv;
 
+bool pointcloud = true;	// set false to disable pointcloud
 char buffer[50];
 Mat image1_bgr;
 
 void writeImages(rs2::frameset const & f, std::string& dir, int count, std::string cam) {
 	std::stringstream path1, path2;
 	// Set up path for images
-	sprintf(buffer, "%05d.png", count);
+	sprintf(buffer, "%05d.bmp", count);
 	path1 << dir << "\\" << cam << "_rgb" << "\\" << "cam_" << cam << "_rgb_" << buffer;
 	path2 << dir << "\\" << cam << "_intel_depth" << "\\" << "cam_" << cam << "_depth_" << buffer;
 	// Create OpenCV image file, 8-bit, unsigned, 3 channels
@@ -40,6 +45,51 @@ void writeImages(rs2::frameset const & f, std::string& dir, int count, std::stri
 	Mat image2(Size(640, 480), CV_16UC1, (void*)f.get_depth_frame().get_data(), Mat::AUTO_STEP);
 	imwrite(path2.str(), image2);
 }
+/*
+using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
+
+pcl_ptr points_to_pcl(const rs2::points& points)
+{
+	pcl_ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+
+	auto sp = points.get_profile().as<rs2::video_stream_profile>();
+	cloud->width = sp.width();
+	cloud->height = sp.height();
+	cloud->is_dense = false;
+	cloud->points.resize(points.size());
+	auto ptr = points.get_vertices();
+	for (auto& p : cloud->points)
+	{
+		p.x = ptr->x;
+		p.y = ptr->y;
+		p.z = ptr->z;
+		ptr++;
+	}
+
+	return cloud;
+}
+
+float3 colors[]{ { 0.8f, 0.1f, 0.3f },
+				  { 0.1f, 0.9f, 0.5f },
+};
+
+// Declare pointcloud object for calculating pointclouds and texture mappings
+rs2::pointcloud pc;
+// We want the points object to be persistent so we can display the last cloud when a frame drops
+rs2::points points;
+
+void writePointcloud(rs2::frameset const& f, std::string& dir, int count, std::string cam) {
+	std::stringstream path1, path2;
+	// Set up path for images
+	sprintf(buffer, "%05d.pcd", count);
+	path1 << dir << "\\" << cam << "_pointcloud" << "\\" << "cam_" << cam << "_pointcloud_" << buffer;
+	auto depth = f.get_depth_frame();
+	auto points = pc.calculate(depth);
+	// Transform it PCL point cloud like in the exemple rs - pcl
+	ptr_cloud cloud = points_to_pcl(points);
+	pcl::io::savePCDFile(path1, *cloud);
+}
+*/
 
 int main(int argc, char* argv[]) try
 {
@@ -50,7 +100,7 @@ int main(int argc, char* argv[]) try
 	rs2::colorizer					colorizer;      // Utility class to convert depth data RGB colorspace
 	std::vector<rs2::pipeline>		pipelines;
 	std::string dirs[]				= { "left_data", "right_data" };
-	std::string subdirs[]			= { "rgb", "intel_depth" };
+	std::string subdirs[]			= { "rgb", "intel_depth", "pointcloud"};
 	std::string path;
 	bool isLeft						= true;
 	std::string left = "left";
@@ -103,7 +153,7 @@ int main(int argc, char* argv[]) try
 
 	// Main app loop
 	while (app) {
-		start = std::clock(); //timer
+		start = std::clock();										  //timer
 		// Collect the new frames from all the connected devices
 		std::vector<rs2::frame> new_frames;
 		for (auto&& pipe : pipelines) {
@@ -113,12 +163,22 @@ int main(int argc, char* argv[]) try
 				// Align newly-arrived frames to color viewport
 				fs = align_to_color.process(fs);
 				if (count > 0) {
-					// Save processed frames to directories
+					// Save processed frames and pointcloud to directories
 					if (isLeft) {
 						writeImages(fs, dirs[0], count, left);
+						/*
+						if (pointcloud) {
+							writePointcloud(fs, dirs[0], count, left);
+						}
+						*/
 					}
 					else {
 						writeImages(fs, dirs[1], count, right);
+						/*
+						if (pointcloud) {
+							writePointcloud(fs, dirs[1], count, right);
+						}
+						*/
 					}
 				}
 				isLeft = !isLeft;  // toggle is false then true
@@ -134,8 +194,8 @@ int main(int argc, char* argv[]) try
 		}
 		// Present all the collected frames with openGl mosaic
 		app.show(render_frames);
-		duration = (std::clock() - start) / (double)CLOCKS_PER_SEC; //timer
-		std::cout << "printf: " << duration << '\n';				//timer
+		duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;   //timer
+		std::cout << "printf: " << duration << '\n';				  //timer
 	}
 	return EXIT_SUCCESS;
 }
