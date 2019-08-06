@@ -12,6 +12,8 @@
 #include <io.h>						// EOF (end of file) is global constant returning -1
 #include <vector>
 #include <map>
+#include <Windows.h>
+
 /*
 #include <pcl/point_types.h>
 #include <pcl/filters/passthrough.h>
@@ -26,11 +28,13 @@ double duration;    //timer
 
 using namespace cv;
 
+double fps = 30;			// set frames per second to stream
+double spf = 1 / fps;
 bool pointcloud = true;	// set false to disable pointcloud
 char buffer[50];
 Mat image1_bgr;
 
-void writeImages(rs2::frameset const & f, std::string& dir, int count, std::string cam) {
+void writeImages(rs2::frameset const& f, std::string& dir, int count, std::string cam) {
 	std::stringstream path1, path2;
 	// Set up path for images
 	sprintf(buffer, "%05d.bmp", count);
@@ -47,11 +51,9 @@ void writeImages(rs2::frameset const & f, std::string& dir, int count, std::stri
 }
 /*
 using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
-
 pcl_ptr points_to_pcl(const rs2::points& points)
 {
 	pcl_ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
-
 	auto sp = points.get_profile().as<rs2::video_stream_profile>();
 	cloud->width = sp.width();
 	cloud->height = sp.height();
@@ -65,19 +67,15 @@ pcl_ptr points_to_pcl(const rs2::points& points)
 		p.z = ptr->z;
 		ptr++;
 	}
-
 	return cloud;
 }
-
 float3 colors[]{ { 0.8f, 0.1f, 0.3f },
 				  { 0.1f, 0.9f, 0.5f },
 };
-
 // Declare pointcloud object for calculating pointclouds and texture mappings
 rs2::pointcloud pc;
 // We want the points object to be persistent so we can display the last cloud when a frame drops
 rs2::points points;
-
 void writePointcloud(rs2::frameset const& f, std::string& dir, int count, std::string cam) {
 	std::stringstream path1, path2;
 	// Set up path for images
@@ -99,13 +97,13 @@ int main(int argc, char* argv[]) try
 	rs2::context					ctx;            // Create librealsense context for managing devices
 	rs2::colorizer					colorizer;      // Utility class to convert depth data RGB colorspace
 	std::vector<rs2::pipeline>		pipelines;
-	std::string dirs[]				= { "left_data", "right_data" };
-	std::string subdirs[]			= { "rgb", "intel_depth", "pointcloud"};
+	std::string dirs[] = { "left_data", "right_data" };
+	std::string subdirs[] = { "rgb", "intel_depth", "pointcloud" };
 	std::string path;
-	bool isLeft						= true;
+	bool isLeft = true;
 	std::string left = "left";
 	std::string right = "right";
-		
+
 	// Create directories to store processed frames
 	for (auto dir : dirs) {									// for 2 directories
 		if ((_access(dir.c_str(), F_OK))) {					// check if directory exists
@@ -196,6 +194,7 @@ int main(int argc, char* argv[]) try
 		app.show(render_frames);
 		duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;   //timer
 		std::cout << "printf: " << duration << '\n';				  //timer
+		Sleep((spf - duration)*1000);
 	}
 	return EXIT_SUCCESS;
 }
