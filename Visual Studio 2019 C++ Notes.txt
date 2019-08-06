@@ -1,17 +1,111 @@
 ------------------------- SOFTWARE -------------------------
 
  V  2 camera RGB/depth stream
-(X) Get frames from rosbag
  V  Map depth to color
-(x) Sync between 2 pairs
-    Save RGB/depth frames as PNG
+ V  Sync between 2 pairs
+ V  Save RGB/depth frames as PNG
+    V raw bits, binary output
+    - memory store, batch save
+    - multithreading
+    Output point cloud directly (not 30 fps)
+    - PCL external dependency
     Set camera baseline
     Get intrinsic parameters (Matlab/OpenCV)
-   -Stream 30fps (currently 640x480)
+ V  Stream 30fps (currently 640x480)
    -Option to stream every fps smoothly (ie 60fps)
    -Master/slave synchronization in software
    -Exposure, etc
-   -Output point cloud directly (not 30 fps)
+
+------------------------- LINKS -------------------------
+
+Libraries	  https://github.com/IntelRealSense/librealsense
+Examples	  https://github.com/IntelRealSense/librealsense/tree/master/examples
+SDK		  https://github.com/IntelRealSense/librealsense/releases
+API Documentation https://intelrealsense.github.io/librealsense/doxygen/annotated.html
+SDK Install 	  https://github.com/IntelRealSense/librealsense/blob/master/doc/distribution_windows.md
+SDK Install	  https://github.com/IntelRealSense/librealsense/releases/tag/v2.23.0
+API How to	  https://github.com/IntelRealSense/librealsense/wiki/API-How-To
+Visual Studio C++ Walkthrough	https://docs.microsoft.com/en-us/cpp/ide/walkthrough-testing-a-project-cpp?view=vs-2019
+PCL		  https://github.com/IntelRealSense/librealsense/blob/master/wrappers/pcl/pcl/rs-pcl.cpp
+PCL Setup	  https://writingovercoffeeblog.wordpress.com/2017/06/11/setup-pcl-on-visual-studio-2015-the-no-fuss-way/
+
+------------------------- Record with Intel Viewer  -------------------------
+
+add source, control, intercamera sync, mode 1 and 2, record
+
+=====================================================================
+========================= COMPLETE TUTORIAL ========================= 
+=====================================================================
+
+------------------------- Download SDK Examples  -------------------------
+Get laptop
+Download Visual Studio C++
+Go to https://github.com/IntelRealSense/librealsense/releases
+Go to Assets
+Download latest Intel.RealSense.SDK-WIN10-2.24.0939.exe
+Go to Local Disk (C:) -> Program Files (x86) -> IntelRealSense SDK 2.0
+Open examples by clicking on ar-basic.vcxproj
+Replace ar-basic.cpp code with own code
+Right click project >> Set as Startup Project
+
+------------------------- Install OpenCV with VCPKG -------------------------
+Go to https://docs.microsoft.com/en-us/cpp/build/vcpkg?view=vs-2019
+Download to C:/Program Files (x86) 
+Open cmd window as admin
+cd C:/Program Files (x86)/vcpkg-master
+bootstrap-vcpkg.bat
+vcpkg search opencv
+vcpkg install opencv
+vcpkg list
+------------------------- Add OpenCV to Visual Studio  -------------------------
+Project >> align-save properties >> C/C++ >> General >> Additional Include Directories
+Add C:\Program Files (x86)\vcpkg-master\installed\x86-windows\include;
+Project >> align-save properties >> VC++ Directories >> Library Directories
+Add C:\Program Files (x86)\vcpkg-master\installed\x86-windows\lib
+Porject >> align-save properties >> Linker >> Input >> Additional Dependencies
+Add the following under Additional Dependencies
+opencv_core246d.lib
+opencv_imgproc246d.lib
+opencv_highgui246d.lib
+opencv_ml246d.lib
+opencv_video246d.lib
+opencv_features2d246d.lib
+opencv_calib3d246d.lib
+opencv_objdetect246d.lib
+opencv_contrib246d.lib
+opencv_legacy246d.lib
+opencv_flann246d.lib
+
+------------------------- Hardware  -------------------------
+
+Attach camera sync cable
+Plug left camera to left USB and right camera to right USB
+Build code
+Run Local Windows Debugger to start recording and streaming
+Press stop debugging to stop recording and streaming
+
+------------------------- VCPKG -------------------------
+
+Go to https://docs.microsoft.com/en-us/cpp/build/vcpkg?view=vs-2019
+Download to C:/Program Files (x86) 
+Open cmd window as admin
+cd C:/Program Files (x86)/vcpkg-master
+bootstrap-vcpkg.bat
+vcpkg search opencv
+vcpkg install opencv
+vcpkg list
+
+=====================================================================
+=====================================================================
+=====================================================================
+
+------------------------- PCL -------------------------
+
+PCL Setup	  https://github.com/IntelRealSense/librealsense/tree/master/wrappers/pcl#windows
+
+If OpenCV_DIR error, add cmake to path in cmd line
+set PATH="C:\Program Files (x86)\CMake 2.8\bin\";%PATH%
+Then 
 
 ------------------------- SDK Examples Used -------------------------
 
@@ -40,13 +134,6 @@ Change start-up project --> right click another project and click Set as Startup
 
 Add path to headers with:
 Project >> align-save properties >> C/C++ >> General >> Additional Include Directories
-
-------------------------- VCPKG -------------------------
-
-Open cmd window
-vcpkg search headerfile
-vcpkg install headerfile
-vcpkg list
 
 ------------------------- C++ Notes -------------------------
 
@@ -139,8 +226,9 @@ const auto&&	=> will bind to rvalues
 
 Used to concatenate strings
 
+------------------------- (void*) -------------------------
 
-
+General pointer that can point to anything
 
 
 
