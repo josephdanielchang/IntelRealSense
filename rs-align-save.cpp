@@ -22,13 +22,14 @@
 #include <cstdio>   //timer
 #include <ctime>    //timer
 std::clock_t start; //timer
-double duration;    //timer
+double duration1;   //timer
+double duration2;	//timer
 
 #define F_OK 0
 
 using namespace cv;
 
-double fps = 30;			// set frames per second to stream
+double fps = 30;		// set frames per second to stream
 double spf = 1 / fps;
 bool pointcloud = true;	// set false to disable pointcloud
 char buffer[50];
@@ -37,9 +38,9 @@ Mat image1_bgr;
 void writeImages(rs2::frameset const& f, std::string& dir, int count, std::string cam) {
 	std::stringstream path1, path2;
 	// Set up path for images
-	sprintf(buffer, "%05d.bmp", count);
-	path1 << dir << "\\" << cam << "_rgb" << "\\" << "cam_" << cam << "_rgb_" << buffer;
-	path2 << dir << "\\" << cam << "_intel_depth" << "\\" << "cam_" << cam << "_depth_" << buffer;
+	sprintf(buffer, "%05d", count);
+	path1 << dir << "\\" << cam << "_rgb" << "\\" << "cam_" << cam << "_rgb_" << buffer << ".bmp";
+	path2 << dir << "\\" << cam << "_intel_depth" << "\\" << "cam_" << cam << "_depth_" << buffer << ".png";
 	// Create OpenCV image file, 8-bit, unsigned, 3 channels
 	Mat image1(Size(640, 480), CV_8UC3, (void*)f.get_color_frame().get_data(), Mat::AUTO_STEP);
 	// Transform color format
@@ -98,7 +99,7 @@ int main(int argc, char* argv[]) try
 	rs2::colorizer					colorizer;      // Utility class to convert depth data RGB colorspace
 	std::vector<rs2::pipeline>		pipelines;
 	std::string dirs[] = { "left_data", "right_data" };
-	std::string subdirs[] = { "rgb", "intel_depth", "pointcloud" };
+	std::string subdirs[] = { "rgb", "intel_depth", "pointcloud"};
 	std::string path;
 	bool isLeft = true;
 	std::string left = "left";
@@ -148,6 +149,7 @@ int main(int argc, char* argv[]) try
 
 	rs2::frameset fs;
 	int count = 0;
+	double pause;
 
 	// Main app loop
 	while (app) {
@@ -192,9 +194,11 @@ int main(int argc, char* argv[]) try
 		}
 		// Present all the collected frames with openGl mosaic
 		app.show(render_frames);
-		duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;   //timer
-		std::cout << "printf: " << duration << '\n';				  //timer
-		Sleep((spf - duration)*1000);
+		duration1 = (std::clock() - start) / (double)CLOCKS_PER_SEC;   //timer
+		pause = spf - duration1;
+		//Sleep(pause*1000);
+		duration2 = (std::clock() - start) / (double)CLOCKS_PER_SEC;   //timer
+		std::cout << "printf: " << duration2 << '\n';				   //timer
 	}
 	return EXIT_SUCCESS;
 }
