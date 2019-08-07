@@ -18,11 +18,7 @@
     Save pointcloud
     Check align_to_color how it works
     Mex rectification integration
-
-=====================================================================
-========================= COMPLETE TUTORIAL ========================= 
-=====================================================================
-
+    
 ------------------------- Download SDK Examples  -------------------------
 Get laptop
 Download Visual Studio C++
@@ -56,7 +52,3 @@ Plug left camera to left USB and right camera to right USB
 Build code
 Run Local Windows Debugger to start recording and streaming
 Press stop debugging to stop recording and streaming
-
-=====================================================================
-=====================================================================
-=====================================================================
