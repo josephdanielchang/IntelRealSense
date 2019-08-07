@@ -3,21 +3,21 @@
  V  2 camera RGB/depth stream
  V  Map depth to color
  V  Sync between 2 pairs
+ V  Cancel initial exposure
  V  Save RGB/depth frames as PNG
-    V raw bits, binary output
-    - memory store, batch save
-    - multithreading
-    Output point cloud directly (not 30 fps)
-    - PCL external dependency
-    Set camera baseline
-    Get intrinsic parameters (Matlab/OpenCV)
- V  Stream 30fps (currently 640x480)
-   -Option to stream every fps smoothly (ie 60fps)
-   -Master/slave synchronization in software
-   -Exposure, etc
-
-https://social.msdn.microsoft.com/Forums/vstudio/en-US/49a72b3b-6b83-40a8-b8a1-8e1a82db5e3d/visual-studio-shows-build-failed-but-no-errors-are-displayed?forum=visualstudiogeneral
-https://github.com/versionone/VersionOne.Client.VisualStudio/issues/10
+ V  Stream at stable 9fps (currently 640x480)
+ V  Allow user to set fps, resolution
+ V  Check single camera rgb/depth sync timestamp difference
+ V  Raw bits, binary output
+ X  Check single camera rgb/depth sync timestamp difference with faster fps
+    Camera parameters (checkboard, matlab)
+    - Get intrinsic parameters (Matlab), use single image/camera option
+    - Calibrate all 4 cameras
+    - Know which corresponds to which
+    Output timestamp to text file, .csv file
+    Save pointcloud
+    Check align_to_color how it works
+    Mex rectification integration
 
 =====================================================================
 ========================= COMPLETE TUTORIAL ========================= 
@@ -73,10 +73,9 @@ Then
 
 Merge C++ with Matlab rectification
 
-
 ------------------------- Record with Intel Viewer  -------------------------
 
-Add sources >> Turn on stereo and rgb
+Add sources >> Turn on stereo and rgb >> Set to 640x480
 Control >> Turn on intercamera sync >> Set cameras to mode 1 and 2 >> Record
 
 ------------------------- LINKS -------------------------
@@ -91,6 +90,9 @@ API How to	  https://github.com/IntelRealSense/librealsense/wiki/API-How-To
 Visual Studio C++ Walkthrough	https://docs.microsoft.com/en-us/cpp/ide/walkthrough-testing-a-project-cpp?view=vs-2019
 PCL		  https://github.com/IntelRealSense/librealsense/blob/master/wrappers/pcl/pcl/rs-pcl.cpp
 PCL Setup	  https://writingovercoffeeblog.wordpress.com/2017/06/11/setup-pcl-on-visual-studio-2015-the-no-fuss-way/
+Save raw data	  https://github.com/IntelRealSense/librealsense/issues/1485
+https://github.com/dorodnic/librealsense/blob/text_sample/examples/capture/rs-capture.cpp
+
 
 ------------------------- SDK Examples Used -------------------------
 
