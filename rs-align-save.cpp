@@ -1,8 +1,9 @@
 // Plug left camera to left USB and right camera to right USB
 // Build and run debugger to start recording
 // Press stop debugging to stop recording
+// Ensure left right frames in correct folders in final build with RAW_DATA false and CAM_SWITCHED
 // Delete timer in final build
-// Ensure left right frames in correct folders in final build
+
 #include <librealsense2/rs.hpp>     // Include RealSense Cross Platform API
 #include <opencv2/opencv.hpp>
 #include "example.hpp"              // Include short list of convenience functions for OpenGL rendering
@@ -25,25 +26,49 @@
 using namespace cv;
 
 #define F_OK 0
-#define WIDTH 640			// SET stream width
-#define HEIGHT 480			// SET stream height
-#define FPS 6				// SET fps to stream (max stable fps is 9), faster streams will ignore
-#define DISPLAY_FPS false	// SET false to disable fps console output
-#define RGB_DEPTH_DIFF true // SET false to disable rgb-depth-diff console output
-#define POINTCLOUD false	// SET false to disable pointcloud
+#define WIDTH 640			 // SET stream width
+#define HEIGHT 480			 // SET stream height
+#define FPS_MIN 20			 // SET fps to stream (max stable fps is 20), ignored by faster streams
+#define DISPLAY_FPS true	 // SET false to disable fps console output
+#define RGB_DEPTH_DIFF false // SET false to disable rgb-depth-diff console output
+#define RAW_DATA true		 // SET false to save rgb-depth as .bmp .png
+#define CAM_SWITCHED true	 // INVERT if left camera saving right images vice-versa
+#define POINTCLOUD false	 // SET false to disable pointcloud
 
 // Helper function for writing timestamp to disk as a csv file
 void metadata_to_csv(const rs2::frame& frm, const std::string& filename);
 
 char buffer[50];
+
+void save_rgb_raw_data(rs2::frameset const& f, std::string& dir, int count, std::string cam) {
+	//std::stringstream path1, path2;
+	auto rgb = f.get_color_frame();
+	// Set up path for images
+	sprintf(buffer, "%05d", count);
+	std::string path(dir + "\\" + cam + "_rgb\\cam_" + cam + "_rgb_" + buffer + ".bin");
+	std::ofstream outfile(path.data(), std::ofstream::binary);
+	outfile.write(static_cast<const char*>(rgb.get_data()), rgb.get_height() * rgb.get_stride_in_bytes());
+	outfile.close();
+}
+
+void save_depth_raw_data(rs2::frameset const& f, std::string& dir, int count, std::string cam) {
+	auto depth = f.get_depth_frame();
+	// Set up path for images
+	sprintf(buffer, "%05d", count);
+	std::string path(dir + "\\" + cam + "_intel_depth\\cam_" + cam + "_intel_depth_" + buffer + ".bin");
+	std::ofstream outfile(path.data(), std::ofstream::binary);
+	outfile.write(static_cast<const char*>(depth.get_data()), depth.get_height() * depth.get_stride_in_bytes());
+	outfile.close();
+}
+
 Mat image1_bgr;
 
 void writeImages(rs2::frameset const& f, std::string& dir, int count, std::string cam) {
 	std::stringstream path1, path2;
 	// Set up path for images
 	sprintf(buffer, "%05d", count);
-	path1 << dir << "\\" << cam << "_rgb" << "\\" << "cam_" << cam << "_rgb_" << buffer << ".bmp";
-	path2 << dir << "\\" << cam << "_intel_depth" << "\\" << "cam_" << cam << "_depth_" << buffer << ".png";
+	path1 << dir << "\\" << cam << "_rgb\\cam_" << cam << "_rgb_" << buffer << ".bmp";
+	path2 << dir << "\\" << cam << "_intel_depth\\cam_" << cam << "_depth_" << buffer << ".png";
 	// Create OpenCV image file, 8-bit, unsigned, 3 channels
 	Mat image1(Size(WIDTH, HEIGHT), CV_8UC3, (void*)f.get_color_frame().get_data(), Mat::AUTO_STEP);
 	// Transform color format
@@ -104,7 +129,7 @@ int main(int argc, char* argv[]) try
 	std::string dirs[] = { "left_data", "right_data" };
 	std::string subdirs[] = { "rgb", "intel_depth", "pointcloud"};
 	std::string path;
-	bool isLeft = false;
+	bool isLeft = true;
 	std::string left = "left";
 	std::string right = "right";
 
@@ -127,6 +152,9 @@ int main(int argc, char* argv[]) try
 		isLeft = !isLeft;  // toggle is false then true
 	}
 
+	if (CAM_SWITCHED) {
+		isLeft = !isLeft;
+	}
 	texture depth_image, color_image;     // Helpers for rendering images
 
 	// Start a streaming pipe per each connected device
@@ -153,7 +181,7 @@ int main(int argc, char* argv[]) try
 	rs2::frameset fs;
 	int count = 0;
 	double delay;
-	double spf = 1 / FPS;
+	double spf = 1 / FPS_MIN;
 	std::clock_t start;		//timer
 	double duration1;		//timer
 	double duration2;		//timer
@@ -181,7 +209,13 @@ int main(int argc, char* argv[]) try
 				if (count > 0) {
 					// Save processed frames and pointcloud to directories
 					if (isLeft) {
-						writeImages(fs, dirs[0], count, left);
+						if (RAW_DATA) {
+							save_rgb_raw_data(fs, dirs[0], count, left);
+							save_depth_raw_data(fs, dirs[0], count, left);
+						}
+						else {
+							writeImages(fs, dirs[0], count, left);
+						}
 						/*
 						if (POINTCLOUD) {
 							writePointcloud(fs, dirs[0], count, left);
@@ -189,7 +223,13 @@ int main(int argc, char* argv[]) try
 						*/
 					}
 					else {
-						writeImages(fs, dirs[1], count, right);
+						if (RAW_DATA) {
+							save_rgb_raw_data(fs, dirs[1], count, right);
+							save_depth_raw_data(fs, dirs[1], count, right);
+						}
+						else {
+							writeImages(fs, dirs[1], count, right);
+						}
 						/*
 						if (POINTCLOUD) {
 							writePointcloud(fs, dirs[1], count, right);
