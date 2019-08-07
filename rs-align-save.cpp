@@ -13,12 +13,12 @@
 #include <vector>
 #include <map>
 
-#include <Windows.h>
-#include <cstdio>   //timer
-#include <ctime>    //timer
-std::clock_t start; //timer
-double duration1;   //timer
-double duration2;	//timer
+#include <Windows.h>	//sleep
+#include <cstdio>		//timer
+#include <ctime>		//timer
+std::clock_t start;		//timer
+double duration1;		//timer
+double duration2;		//timer
 
 /*
 #include <pcl/point_types.h>
@@ -26,12 +26,15 @@ double duration2;	//timer
 */
 
 #define F_OK 0
+#define WIDTH 640			// SET stream width
+#define HEIGHT 480			// SET stream height
+#define FPS 9				// SET fps to stream (max stable fps is 9), faster streams will ignore
+#define POINTCLOUD true		// SET false to disable pointcloud
 
 using namespace cv;
 
-double fps = 9;				    // SET fps to stream (max stable fps is 9)
-double spf = 1 / fps;
-bool pointcloud = true;			// SET false to disable pointcloud
+double spf = 1 / FPS;
+//bool pointcloud = true;			// SET false to disable pointcloud
 char buffer[50];
 Mat image1_bgr;
 
@@ -42,12 +45,12 @@ void writeImages(rs2::frameset const& f, std::string& dir, int count, std::strin
 	path1 << dir << "\\" << cam << "_rgb" << "\\" << "cam_" << cam << "_rgb_" << buffer << ".bmp";
 	path2 << dir << "\\" << cam << "_intel_depth" << "\\" << "cam_" << cam << "_depth_" << buffer << ".png";
 	// Create OpenCV image file, 8-bit, unsigned, 3 channels
-	Mat image1(Size(640, 480), CV_8UC3, (void*)f.get_color_frame().get_data(), Mat::AUTO_STEP);
+	Mat image1(Size(WIDTH, HEIGHT), CV_8UC3, (void*)f.get_color_frame().get_data(), Mat::AUTO_STEP);
 	// Transform color format
 	cvtColor(image1, image1_bgr, COLOR_RGB2BGR);
 	imwrite(path1.str(), image1_bgr);
 	// Create OpenCV image file, 16-bit, unsigned, 1 channel
-	Mat image2(Size(640, 480), CV_16UC1, (void*)f.get_depth_frame().get_data(), Mat::AUTO_STEP);
+	Mat image2(Size(WIDTH, HEIGHT), CV_8UC1, (void*)f.get_depth_frame().get_data(), Mat::AUTO_STEP);
 	imwrite(path2.str(), image2);
 }
 /*
@@ -132,8 +135,8 @@ int main(int argc, char* argv[]) try
 		rs2::pipeline pipe(ctx);
 		rs2::config cfg;
 		cfg.enable_device(dev.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER));
-		cfg.enable_stream(RS2_STREAM_DEPTH, 640, 480);
-		cfg.enable_stream(RS2_STREAM_COLOR, 640, 480);
+		cfg.enable_stream(RS2_STREAM_DEPTH, WIDTH, HEIGHT);
+		cfg.enable_stream(RS2_STREAM_COLOR, WIDTH, HEIGHT);
 		// Start streaming
 		pipe.start(cfg);
 		pipelines.emplace_back(pipe);
@@ -167,7 +170,7 @@ int main(int argc, char* argv[]) try
 					if (isLeft) {
 						writeImages(fs, dirs[0], count, left);
 						/*
-						if (pointcloud) {
+						if (POINTCLOUD) {
 							writePointcloud(fs, dirs[0], count, left);
 						}
 						*/
@@ -175,7 +178,7 @@ int main(int argc, char* argv[]) try
 					else {
 						writeImages(fs, dirs[1], count, right);
 						/*
-						if (pointcloud) {
+						if (POINTCLOUD) {
 							writePointcloud(fs, dirs[1], count, right);
 						}
 						*/
