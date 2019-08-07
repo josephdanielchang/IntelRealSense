@@ -2,6 +2,7 @@
 // Build and run debugger to start recording
 // Press stop debugging to stop recording
 // Delete timer in final build
+// Ensure left right frames in correct folders in final build
 #include <librealsense2/rs.hpp>     // Include RealSense Cross Platform API
 #include <opencv2/opencv.hpp>
 #include "example.hpp"              // Include short list of convenience functions for OpenGL rendering
@@ -103,7 +104,7 @@ int main(int argc, char* argv[]) try
 	std::string dirs[] = { "left_data", "right_data" };
 	std::string subdirs[] = { "rgb", "intel_depth", "pointcloud"};
 	std::string path;
-	bool isLeft = true;
+	bool isLeft = false;
 	std::string left = "left";
 	std::string right = "right";
 
