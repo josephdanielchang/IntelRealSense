@@ -12,29 +12,28 @@
 #include <io.h>						// EOF (end of file) is global constant returning -1
 #include <vector>
 #include <map>
-
-#include <Windows.h>	//sleep
-#include <cstdio>		//timer
-#include <ctime>		//timer
-std::clock_t start;		//timer
-double duration1;		//timer
-double duration2;		//timer
+#include <Windows.h>				//sleep
+#include <cstdio>					//timer
+#include <ctime>					//timer
 
 /*
 #include <pcl/point_types.h>
 #include <pcl/filters/passthrough.h>
 */
 
+using namespace cv;
+
 #define F_OK 0
 #define WIDTH 640			// SET stream width
 #define HEIGHT 480			// SET stream height
-#define FPS 9				// SET fps to stream (max stable fps is 9), faster streams will ignore
-#define POINTCLOUD true		// SET false to disable pointcloud
+#define FPS 6				// SET fps to stream (max stable fps is 9), faster streams will ignore
+#define DISPLAY_FPS false	// SET false to disable fps console output
+#define RGB_DEPTH_DIFF true // SET false to disable rgb-depth-diff console output
+#define POINTCLOUD false	// SET false to disable pointcloud
 
-using namespace cv;
+// Helper function for writing timestamp to disk as a csv file
+void metadata_to_csv(const rs2::frame& frm, const std::string& filename);
 
-double spf = 1 / FPS;
-//bool pointcloud = true;			// SET false to disable pointcloud
 char buffer[50];
 Mat image1_bgr;
 
@@ -50,7 +49,7 @@ void writeImages(rs2::frameset const& f, std::string& dir, int count, std::strin
 	cvtColor(image1, image1_bgr, COLOR_RGB2BGR);
 	imwrite(path1.str(), image1_bgr);
 	// Create OpenCV image file, 16-bit, unsigned, 1 channel
-	Mat image2(Size(WIDTH, HEIGHT), CV_8UC1, (void*)f.get_depth_frame().get_data(), Mat::AUTO_STEP);
+	Mat image2(Size(WIDTH, HEIGHT), CV_16UC1, (void*)f.get_depth_frame().get_data(), Mat::AUTO_STEP);
 	imwrite(path2.str(), image2);
 }
 /*
@@ -153,6 +152,12 @@ int main(int argc, char* argv[]) try
 	rs2::frameset fs;
 	int count = 0;
 	double delay;
+	double spf = 1 / FPS;
+	std::clock_t start;		//timer
+	double duration1;		//timer
+	double duration2;		//timer
+	double rgb_t;			//timestamp
+	double depth_t;			//timestamp
 
 	// Main app loop
 	while (app) {
@@ -163,6 +168,13 @@ int main(int argc, char* argv[]) try
 			rs2::frameset fs;
 			// Use non-blocking frames polling method to minimize UI impact
 			if (pipe.poll_for_frames(&fs)) {
+				if (RGB_DEPTH_DIFF) {
+					rgb_t = fs.get_color_frame().get_timestamp();
+					depth_t = fs.get_depth_frame().get_timestamp();
+					//std::cout << "rgb (epoch)  :" << std::setprecision(15) << rgb_t << "\n";
+					//std::cout << "depth (epoch):" << std::setprecision(15) << depth_t << "\n";
+					std::cout << "diff (ms) :" << std::setprecision(15) << rgb_t-depth_t << "\n";
+				}
 				// Align newly-arrived frames to color viewport
 				fs = align_to_color.process(fs);
 				if (count > 0) {
@@ -204,9 +216,10 @@ int main(int argc, char* argv[]) try
 			delay = spf - duration1;
 			Sleep(delay * 1000);
 		}
-		duration2 = (std::clock() - start) / (double)CLOCKS_PER_SEC;   //timer
-		std::cout << "new fps:" << 1.0/duration2 << '\n';			   //timer
-
+		if (DISPLAY_FPS) {
+			duration2 = (std::clock() - start) / (double)CLOCKS_PER_SEC;   //timer
+			std::cout << "new fps:" << 1.0 / duration2 << '\n';			   //timer
+		}
 	}
 	return EXIT_SUCCESS;
 }
