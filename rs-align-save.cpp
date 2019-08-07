@@ -12,26 +12,26 @@
 #include <io.h>						// EOF (end of file) is global constant returning -1
 #include <vector>
 #include <map>
+
 #include <Windows.h>
-
-/*
-#include <pcl/point_types.h>
-#include <pcl/filters/passthrough.h>
-*/
-
 #include <cstdio>   //timer
 #include <ctime>    //timer
 std::clock_t start; //timer
 double duration1;   //timer
 double duration2;	//timer
 
+/*
+#include <pcl/point_types.h>
+#include <pcl/filters/passthrough.h>
+*/
+
 #define F_OK 0
 
 using namespace cv;
 
-double fps = 30;		// set frames per second to stream
+double fps = 9;				    // SET fps to stream (max stable fps is 9)
 double spf = 1 / fps;
-bool pointcloud = true;	// set false to disable pointcloud
+bool pointcloud = true;			// SET false to disable pointcloud
 char buffer[50];
 Mat image1_bgr;
 
@@ -93,7 +93,7 @@ void writePointcloud(rs2::frameset const& f, std::string& dir, int count, std::s
 int main(int argc, char* argv[]) try
 {
 	// Create a simple OpenGL window for rendering:
-	window app(1280, 960, "Multi-Camera");
+	window app(640, 480, "Multi-Camera");
 
 	rs2::context					ctx;            // Create librealsense context for managing devices
 	rs2::colorizer					colorizer;      // Utility class to convert depth data RGB colorspace
@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) try
 
 	rs2::frameset fs;
 	int count = 0;
-	double pause;
+	double delay;
 
 	// Main app loop
 	while (app) {
@@ -194,11 +194,16 @@ int main(int argc, char* argv[]) try
 		}
 		// Present all the collected frames with openGl mosaic
 		app.show(render_frames);
+
 		duration1 = (std::clock() - start) / (double)CLOCKS_PER_SEC;   //timer
-		pause = spf - duration1;
-		//Sleep(pause*1000);
+		//std::cout << "reg fps: " << 1.0/duration1 << '\n';		   //timer
+		if (spf > duration1) {
+			delay = spf - duration1;
+			Sleep(delay * 1000);
+		}
 		duration2 = (std::clock() - start) / (double)CLOCKS_PER_SEC;   //timer
-		std::cout << "printf: " << duration2 << '\n';				   //timer
+		std::cout << "new fps:" << 1.0/duration2 << '\n';			   //timer
+
 	}
 	return EXIT_SUCCESS;
 }
