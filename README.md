@@ -6,9 +6,10 @@
  V  Cancel initial exposure  
  V  Save RGB/depth frames as PNG  
  V  Stream at stable 9fps (currently 640x480)  
- V  Set fps, resolution  
+ V  Allow user to set fps, resolution  
  V  Check single camera rgb/depth sync timestamp difference  
  V  Raw bits, binary output  
+ V  Stream at stable 20fps (currently 640x480)
  X  Check single camera rgb/depth sync timestamp difference with faster fps 
     Camera parameters (checkboard, matlab)  
     - Get intrinsic parameters (Matlab), use single image/camera option  
