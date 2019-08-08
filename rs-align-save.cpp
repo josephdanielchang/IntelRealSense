@@ -26,10 +26,11 @@
 #define F_OK 0
 #define WIDTH 640			 // SET stream width
 #define HEIGHT 480			 // SET stream height
-#define FPS_MAX 15		 // SET max fps to stream (max stable fps is 20), ignored by slower streams
+#define FPS_MAX 60  		 // SET max fps to stream (max stable fps varies), ignored by slower streams
 #define DISPLAY_FPS true	 // SET false to disable fps console output
 #define RGB_DEPTH_DIFF false // SET false to disable rgb-depth-diff console output
 #define RAW_DATA true		 // SET false to save rgb-depth as .bmp .png
+#define TIMESTAMP true		 // SET false to disable saving timestamps in .txt, time in seconds
 #define CAM_SWITCHED true	 // INVERT if left camera saving right images vice-versa
 #define POINTCLOUD false	 // SET false to disable pointcloud
 
@@ -38,25 +39,19 @@ void metadata_to_csv(const rs2::frame& frm, const std::string& filename);
 
 char buffer[50];
 
-void save_rgb_raw_data(rs2::frameset const& f, std::string& dir, int count, std::string cam) {
-	//std::stringstream path1, path2;
+void save_raw_data(rs2::frameset const& f, std::string& dir, int count, std::string cam) {
+	auto depth = f.get_depth_frame();
 	auto rgb = f.get_color_frame();
 	// Set up path for images
 	sprintf(buffer, "%05d", count);
-	std::string path(dir + "\\" + cam + "_rgb\\cam_" + cam + "_rgb_" + buffer + ".bin");
-	std::ofstream outfile(path.data(), std::ofstream::binary);
-	outfile.write(static_cast<const char*>(rgb.get_data()), byte(rgb.get_height()) * rgb.get_stride_in_bytes());
-	outfile.close();
-}
-
-void save_depth_raw_data(rs2::frameset const& f, std::string& dir, int count, std::string cam) {
-	auto depth = f.get_depth_frame();
-	// Set up path for images
-	sprintf(buffer, "%05d", count);
-	std::string path(dir + "\\" + cam + "_intel_depth\\cam_" + cam + "_intel_depth_" + buffer + ".bin");
-	std::ofstream outfile(path.data(), std::ofstream::binary);
-	outfile.write(static_cast<const char*>(depth.get_data()), byte(depth.get_height()) * depth.get_stride_in_bytes());
-	outfile.close();
+	std::string path1(dir + "\\" + cam + "_rgb\\cam_" + cam + "_rgb_" + buffer + ".bin");
+	std::string path2(dir + "\\" + cam + "_intel_depth\\cam_" + cam + "_intel_depth_" + buffer + ".bin");
+	std::ofstream outfile1(path1.data(), std::ofstream::binary);
+	std::ofstream outfile2(path2.data(), std::ofstream::binary);
+	outfile1.write(static_cast<const char*>(rgb.get_data()), byte(rgb.get_height()) * rgb.get_stride_in_bytes());
+	outfile2.write(static_cast<const char*>(depth.get_data()), byte(depth.get_height()) * depth.get_stride_in_bytes());
+	outfile1.close();
+	outfile2.close();
 }
 
 using namespace cv;
@@ -77,6 +72,21 @@ void writeImages(rs2::frameset const& f, std::string& dir, int count, std::strin
 	Mat image2(Size(WIDTH, HEIGHT), CV_16UC1, (void*)f.get_depth_frame().get_data(), Mat::AUTO_STEP);
 	imwrite(path2.str(), image2);
 }
+
+void save_timestamp(std::string& dir, int count, std::string cam, double rgb_t, double depth_t) {
+	// Set up path for timestamps
+	std::string path1(dir + "\\cam_" + cam + "_rgb_timestamp.txt");
+	std::string path2(dir + "\\cam_" + cam + "_intel_depth_timestamp.txt");
+	std::ofstream outfile1;
+	std::ofstream outfile2;
+	outfile1.open(path1, std::ios_base::app);
+	outfile2.open(path2, std::ios_base::app);
+	outfile1 << count << ", " << std::setprecision(15) << rgb_t << "\n";
+	outfile2 << count << ", " << std::setprecision(15) << depth_t << "\n";
+	outfile1.close();
+	outfile2.close();
+}
+
 /*
 using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
 pcl_ptr points_to_pcl(const rs2::points& points)
@@ -196,25 +206,28 @@ int main(int argc, char* argv[]) try
 			rs2::frameset fs;
 			// Use non-blocking frames polling method to minimize UI impact
 			if (pipe.poll_for_frames(&fs)) {
-				if (RGB_DEPTH_DIFF) {
+				if (TIMESTAMP || RGB_DEPTH_DIFF) {
 					rgb_t = fs.get_color_frame().get_timestamp();
 					depth_t = fs.get_depth_frame().get_timestamp();
 					//std::cout << "rgb (epoch)  :" << std::setprecision(15) << rgb_t << "\n";
 					//std::cout << "depth (epoch):" << std::setprecision(15) << depth_t << "\n";
+				}
+				if (RGB_DEPTH_DIFF) {
 					std::cout << "diff (ms) :" << std::setprecision(15) << rgb_t-depth_t << "\n";
 				}
 				// Align newly-arrived frames to color viewport
 				fs = align_to_color.process(fs);
-
 				if (count > 0) {
 					// Save processed frames and pointcloud to directories
 					if (isLeft) {
 						if (RAW_DATA) {
-							save_rgb_raw_data(fs, dirs[0], count, left);
-							save_depth_raw_data(fs, dirs[0], count, left);
+							save_raw_data(fs, dirs[0], count, left);
 						}
 						else {
 							writeImages(fs, dirs[0], count, left);
+						}
+						if (TIMESTAMP) {
+							save_timestamp(dirs[0], count, left, rgb_t, depth_t);
 						}
 						/*
 						if (POINTCLOUD) {
@@ -224,11 +237,13 @@ int main(int argc, char* argv[]) try
 					}
 					else {
 						if (RAW_DATA) {
-							save_rgb_raw_data(fs, dirs[1], count, right);
-							save_depth_raw_data(fs, dirs[1], count, right);
+							save_raw_data(fs, dirs[1], count, right);
 						}
 						else {
 							writeImages(fs, dirs[1], count, right);
+						}
+						if (TIMESTAMP) {
+							save_timestamp(dirs[1], count, right, rgb_t, depth_t);
 						}
 						/*
 						if (POINTCLOUD) {
@@ -255,7 +270,7 @@ int main(int argc, char* argv[]) try
 		//std::cout << "reg fps: " << 1.0/duration1 << '\n';		   //timer
 		if (spf > duration1) {
 			delay = spf - duration1;
-			Sleep(delay * 1000);
+			Sleep(delay * 1000.0);
 		}
 		if (DISPLAY_FPS) {
 			duration2 = (std::clock() - start) / (double)CLOCKS_PER_SEC;   //timer
