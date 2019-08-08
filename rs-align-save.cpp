@@ -23,12 +23,10 @@
 #include <pcl/filters/passthrough.h>
 */
 
-using namespace cv;
-
 #define F_OK 0
 #define WIDTH 640			 // SET stream width
 #define HEIGHT 480			 // SET stream height
-#define FPS_MIN 20			 // SET fps to stream (max stable fps is 20), ignored by faster streams
+#define FPS_MAX 15		 // SET max fps to stream (max stable fps is 20), ignored by slower streams
 #define DISPLAY_FPS true	 // SET false to disable fps console output
 #define RGB_DEPTH_DIFF false // SET false to disable rgb-depth-diff console output
 #define RAW_DATA true		 // SET false to save rgb-depth as .bmp .png
@@ -47,7 +45,7 @@ void save_rgb_raw_data(rs2::frameset const& f, std::string& dir, int count, std:
 	sprintf(buffer, "%05d", count);
 	std::string path(dir + "\\" + cam + "_rgb\\cam_" + cam + "_rgb_" + buffer + ".bin");
 	std::ofstream outfile(path.data(), std::ofstream::binary);
-	outfile.write(static_cast<const char*>(rgb.get_data()), rgb.get_height() * rgb.get_stride_in_bytes());
+	outfile.write(static_cast<const char*>(rgb.get_data()), byte(rgb.get_height()) * rgb.get_stride_in_bytes());
 	outfile.close();
 }
 
@@ -57,10 +55,11 @@ void save_depth_raw_data(rs2::frameset const& f, std::string& dir, int count, st
 	sprintf(buffer, "%05d", count);
 	std::string path(dir + "\\" + cam + "_intel_depth\\cam_" + cam + "_intel_depth_" + buffer + ".bin");
 	std::ofstream outfile(path.data(), std::ofstream::binary);
-	outfile.write(static_cast<const char*>(depth.get_data()), depth.get_height() * depth.get_stride_in_bytes());
+	outfile.write(static_cast<const char*>(depth.get_data()), byte(depth.get_height()) * depth.get_stride_in_bytes());
 	outfile.close();
 }
 
+using namespace cv;
 Mat image1_bgr;
 
 void writeImages(rs2::frameset const& f, std::string& dir, int count, std::string cam) {
@@ -181,7 +180,7 @@ int main(int argc, char* argv[]) try
 	rs2::frameset fs;
 	int count = 0;
 	double delay;
-	double spf = 1 / FPS_MIN;
+	double spf = 1.0 / FPS_MAX;
 	std::clock_t start;		//timer
 	double duration1;		//timer
 	double duration2;		//timer
@@ -206,6 +205,7 @@ int main(int argc, char* argv[]) try
 				}
 				// Align newly-arrived frames to color viewport
 				fs = align_to_color.process(fs);
+
 				if (count > 0) {
 					// Save processed frames and pointcloud to directories
 					if (isLeft) {
@@ -259,7 +259,7 @@ int main(int argc, char* argv[]) try
 		}
 		if (DISPLAY_FPS) {
 			duration2 = (std::clock() - start) / (double)CLOCKS_PER_SEC;   //timer
-			std::cout << "new fps:" << 1.0 / duration2 << '\n';			   //timer
+			std::cout << "new fps:" << 1.0/duration2 << '\n';			   //timer
 		}
 	}
 	return EXIT_SUCCESS;
