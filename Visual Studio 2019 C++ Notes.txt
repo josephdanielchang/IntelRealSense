@@ -9,12 +9,10 @@
  V  Allow user to set fps, resolution
  V  Check single camera rgb/depth sync timestamp difference
  V  Raw bits, binary output
-    Increase to 30 fps
-    Camera parameters (checkboard, matlab)
-    - Get intrinsic parameters (Matlab), use single image/camera option
-    - Calibrate all 4 cameras
-    - Know which corresponds to which
  V  Output timestamp to text file
+ V  Intrinsic parameters of 4 cameras (checkboard, matlab)
+    Increase to no data saved stream to 30 fps
+    Look more into .bmp, .bin, binary output formats
     Save pointcloud
     Check align_to_color how it works
     Mex rectification integration
