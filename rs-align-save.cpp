@@ -24,15 +24,16 @@
 */
 
 #define F_OK 0
-#define WIDTH 640			 // SET stream width
-#define HEIGHT 480			 // SET stream height
-#define FPS_MAX 60  		 // SET max fps to stream (max stable fps varies), ignored by slower streams
-#define DISPLAY_FPS true	 // SET false to disable fps console output
-#define RGB_DEPTH_DIFF false // SET false to disable rgb-depth-diff console output
-#define RAW_DATA true		 // SET false to save rgb-depth as .bmp .png
-#define TIMESTAMP true		 // SET false to disable saving timestamps in .txt, time in seconds
-#define CAM_SWITCHED true	 // INVERT if left camera saving right images vice-versa
-#define POINTCLOUD false	 // SET false to disable pointcloud
+#define WIDTH 640				// SET stream width
+#define HEIGHT 480				// SET stream height
+#define FPS_MAX 200  			// SET max fps to stream (max stable fps varies), ignored by slower streams
+#define DISPLAY_NEW_FPS true	// SET false to disable showing cutoff fps on console output
+#define DISPLAY_REG_FPS false	// SET false to disable showing regular fps on console output
+#define RGB_DEPTH_DIFF false	// SET false to disable showing rgb-depth-diff on console output
+#define RAW_DATA true			// SET false to save rgb-depth as .bmp .png
+#define TIMESTAMP true			// SET false to disable saving timestamps in .txt, time in seconds
+#define CAM_SWITCHED true		// INVERT if left camera saving right images vice-versa
+#define POINTCLOUD false		// SET false to disable pointcloud
 
 // Helper function for writing timestamp to disk as a csv file
 void metadata_to_csv(const rs2::frame& frm, const std::string& filename);
@@ -266,15 +267,17 @@ int main(int argc, char* argv[]) try
 		// Present all the collected frames with openGl mosaic
 		app.show(render_frames);
 
-		duration1 = (std::clock() - start) / (double)CLOCKS_PER_SEC;   //timer
-		//std::cout << "reg fps: " << 1.0/duration1 << '\n';		   //timer
+		duration1 = (std::clock() - start) / (double)CLOCKS_PER_SEC;       //timer
+		if (DISPLAY_REG_FPS) {
+			std::cout << "reg fps: " << 1.0 / duration1 << '\n';		   //timer
+		}
 		if (spf > duration1) {
 			delay = spf - duration1;
 			Sleep(delay * 1000.0);
 		}
-		if (DISPLAY_FPS) {
+		if (DISPLAY_NEW_FPS) {
 			duration2 = (std::clock() - start) / (double)CLOCKS_PER_SEC;   //timer
-			std::cout << "new fps:" << 1.0/duration2 << '\n';			   //timer
+			std::cout << "new fps:" << 1.0 / duration2 << '\n';			   //timer
 		}
 	}
 	return EXIT_SUCCESS;
