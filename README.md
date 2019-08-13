@@ -5,20 +5,17 @@
  V  Sync between 2 pairs  
  V  Cancel initial exposure  
  V  Save RGB/depth frames as PNG  
- V  Stream at stable 9fps (currently 640x480)  
+ V  Stream at stable fps (currently 640x480)  
  V  Allow user to set fps, resolution  
  V  Check single camera rgb/depth sync timestamp difference  
  V  Raw bits, binary output  
- V  Stream at stable 20fps (currently 640x480)
- X  Check single camera rgb/depth sync timestamp difference with faster fps 
-    Camera parameters (checkboard, matlab)  
-    - Get intrinsic parameters (Matlab), use single image/camera option  
-    - Calibrate all 4 cameras  
-    - Know which corresponds to which  
-    Output timestamp to text file, .csv file  
-    Save pointcloud  
-    Check align_to_color how it works  
-    Mex rectification integration  
+ V  Output timestamp to text file  
+ V  Intrinsic parameters of 4 cameras (checkboard, matlab)  
+ V  FPS for streaming (6, 15, 30)  
+ V  Check FPS after all processing  
+ V  Save pointcloud  
+    Master-Slave sync issue  
+    FPS options (60)  
     
 ------------------------- Download SDK Examples  -------------------------  
 Get laptop  
