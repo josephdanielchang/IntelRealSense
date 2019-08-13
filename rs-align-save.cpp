@@ -24,16 +24,17 @@
 */
 
 #define F_OK 0
-#define WIDTH 640				// SET stream width
-#define HEIGHT 480				// SET stream height
-#define FPS_MAX 200  			// SET max fps to stream (max stable fps varies), ignored by slower streams
-#define DISPLAY_NEW_FPS true	// SET false to disable showing cutoff fps on console output
-#define DISPLAY_REG_FPS false	// SET false to disable showing regular fps on console output
-#define RGB_DEPTH_DIFF false	// SET false to disable showing rgb-depth-diff on console output
-#define RAW_DATA true			// SET false to save rgb-depth as .bmp .png
-#define TIMESTAMP true			// SET false to disable saving timestamps in .txt, time in seconds
-#define CAM_SWITCHED true		// INVERT if left camera saving right images vice-versa
-#define POINTCLOUD false		// SET false to disable pointcloud
+#define WIDTH 640						// SET stream width
+#define HEIGHT 480						// SET stream height
+#define FPS_MAX 200  					// SET max fps to stream (max stable fps varies), ignored by slower streams
+#define DISPLAY_NEW_FPS_PER_FRAME false	// SET false to disable showing cutoff fps per frame on console output
+#define DISPLAY_REG_FPS_PER_FRAME false	// SET false to disable showing regular fps per frame on console output
+#define DISPLAY_FPS_PER_SECOND true		// SET false to disable showing fps per second on constole output
+#define RGB_DEPTH_DIFF false			// SET false to disable showing rgb-depth-diff on console output
+#define RAW_DATA true					// SET false to save rgb-depth as .bmp .png
+#define TIMESTAMP true					// SET false to disable saving timestamps in .txt, time in seconds
+#define CAM_SWITCHED true				// INVERT if left camera saving right images vice-versa
+#define POINTCLOUD false				// SET false to disable pointcloud
 
 // Helper function for writing timestamp to disk as a csv file
 void metadata_to_csv(const rs2::frame& frm, const std::string& filename);
@@ -145,26 +146,22 @@ int main(int argc, char* argv[]) try
 
 	// Create directories to store processed frames
 	for (auto dir : dirs) {									// for 2 directories
-		if ((_access(dir.c_str(), F_OK))) {					// check if directory exists
+		if ((_access(dir.c_str(), F_OK)))					// check if directory exists
 			_mkdir(dir.c_str());							// create directory
-		}
 		for (auto subdir : subdirs) {						// for 2 subdirectories
-			if (isLeft) {
+			if (isLeft)
 				path = dir + "\\left_" + subdir;			// subdirectory path
-			}
-			else {
+			else
 				path = dir + "\\right_" + subdir;			// subdirectory path
-			}
-			if (_access(path.c_str(), F_OK)) {				// check if path exists
+			if (_access(path.c_str(), F_OK))				// check if path exists
 				_mkdir(path.c_str());						// create subdirectory
-			}
 		}
 		isLeft = !isLeft;  // toggle is false then true
 	}
 
-	if (CAM_SWITCHED) {
+	if (CAM_SWITCHED)
 		isLeft = !isLeft;
-	}
+
 	texture depth_image, color_image;     // Helpers for rendering images
 
 	// Start a streaming pipe per each connected device
@@ -192,11 +189,13 @@ int main(int argc, char* argv[]) try
 	int count = 0;
 	double delay;
 	double spf = 1.0 / FPS_MAX;
-	std::clock_t start;		//timer
-	double duration1;		//timer
-	double duration2;		//timer
-	double rgb_t;			//timestamp
-	double depth_t;			//timestamp
+	std::clock_t start;			//timer
+	double duration1;			//timer before sleep
+	double duration2;			//timer after sleep
+	double duration3 = 0.0;		//timer counting to 1 second
+	int frames_this_second = 0; //counts frames to 1 second
+	double rgb_t;				//timestamp
+	double depth_t;				//timestamp
 
 	// Main app loop
 	while (app) {
@@ -221,15 +220,12 @@ int main(int argc, char* argv[]) try
 				if (count > 0) {
 					// Save processed frames and pointcloud to directories
 					if (isLeft) {
-						if (RAW_DATA) {
+						if (RAW_DATA)
 							save_raw_data(fs, dirs[0], count, left);
-						}
-						else {
+						else
 							writeImages(fs, dirs[0], count, left);
-						}
-						if (TIMESTAMP) {
+						if (TIMESTAMP)
 							save_timestamp(dirs[0], count, left, rgb_t, depth_t);
-						}
 						/*
 						if (POINTCLOUD) {
 							writePointcloud(fs, dirs[0], count, left);
@@ -237,15 +233,12 @@ int main(int argc, char* argv[]) try
 						*/
 					}
 					else {
-						if (RAW_DATA) {
+						if (RAW_DATA)
 							save_raw_data(fs, dirs[1], count, right);
-						}
-						else {
+						else
 							writeImages(fs, dirs[1], count, right);
-						}
-						if (TIMESTAMP) {
+						if (TIMESTAMP)
 							save_timestamp(dirs[1], count, right, rgb_t, depth_t);
-						}
 						/*
 						if (POINTCLOUD) {
 							writePointcloud(fs, dirs[1], count, right);
@@ -260,6 +253,7 @@ int main(int argc, char* argv[]) try
 			}
 		}
 		count++;
+		frames_this_second++;
 		// Convert the newly-arrived frames to render-friendly format
 		for (const auto& frame : new_frames) {
 			render_frames[frame.get_profile().unique_id()] = colorizer.process(frame);
@@ -268,16 +262,22 @@ int main(int argc, char* argv[]) try
 		app.show(render_frames);
 
 		duration1 = (std::clock() - start) / (double)CLOCKS_PER_SEC;       //timer
-		if (DISPLAY_REG_FPS) {
+		if (DISPLAY_REG_FPS_PER_FRAME)
 			std::cout << "reg fps: " << 1.0 / duration1 << '\n';		   //timer
-		}
 		if (spf > duration1) {
 			delay = spf - duration1;
 			Sleep(delay * 1000.0);
 		}
-		if (DISPLAY_NEW_FPS) {
-			duration2 = (std::clock() - start) / (double)CLOCKS_PER_SEC;   //timer
+		duration2 = (std::clock() - start) / (double)CLOCKS_PER_SEC;	   //timer
+		if (DISPLAY_NEW_FPS_PER_FRAME)
 			std::cout << "new fps:" << 1.0 / duration2 << '\n';			   //timer
+		if (DISPLAY_FPS_PER_SECOND) {
+			duration3 += duration2;
+			if (duration3 >= 1.0) {
+				std::cout << "fps: " << frames_this_second << '\n';
+				duration3 = 0.0;
+				frames_this_second = 0;
+			}
 		}
 	}
 	return EXIT_SUCCESS;
