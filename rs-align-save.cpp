@@ -3,6 +3,7 @@
 // Press stop debugging to stop recording
 // Ensure left right frames in correct folders in final build with RAW_DATA false and CAM_SWITCHED
 // Delete timer in final build
+// Change initial exposure from 30 back to 100
 
 #include <librealsense2/rs.hpp>     // Include RealSense Cross Platform API
 #include <opencv2/opencv.hpp>
@@ -18,23 +19,19 @@
 #include <cstdio>					//timer
 #include <ctime>					//timer
 
-/*
-#include <pcl/point_types.h>
-#include <pcl/filters/passthrough.h>
-*/
-
 #define F_OK 0
 #define WIDTH 640						// SET stream width
 #define HEIGHT 480						// SET stream height
+#define FPS 30							// SET camera fps (6,15,30,60)
 #define FPS_MAX 200  					// SET max fps to stream (max stable fps varies), ignored by slower streams
 #define DISPLAY_NEW_FPS_PER_FRAME false	// SET false to disable showing cutoff fps per frame on console output
 #define DISPLAY_REG_FPS_PER_FRAME false	// SET false to disable showing regular fps per frame on console output
 #define DISPLAY_FPS_PER_SECOND true		// SET false to disable showing fps per second on constole output
 #define RGB_DEPTH_DIFF false			// SET false to disable showing rgb-depth-diff on console output
-#define RAW_DATA true					// SET false to save rgb-depth as .bmp .png
+#define RAW_DATA false					// SET false to save rgb-depth as .bmp .png
 #define TIMESTAMP true					// SET false to disable saving timestamps in .txt, time in seconds
 #define CAM_SWITCHED true				// INVERT if left camera saving right images vice-versa
-#define POINTCLOUD false				// SET false to disable pointcloud
+#define POINTCLOUD true				// SET false to disable pointcloud
 
 // Helper function for writing timestamp to disk as a csv file
 void metadata_to_csv(const rs2::frame& frm, const std::string& filename);
@@ -63,7 +60,7 @@ void writeImages(rs2::frameset const& f, std::string& dir, int count, std::strin
 	std::stringstream path1, path2;
 	// Set up path for images
 	sprintf(buffer, "%05d", count);
-	path1 << dir << "\\" << cam << "_rgb\\cam_" << cam << "_rgb_" << buffer << ".bmp";
+	path1 << dir << "\\" << cam << "_rgb\\cam_" << cam << "_rgb_" << buffer << ".png";
 	path2 << dir << "\\" << cam << "_intel_depth\\cam_" << cam << "_depth_" << buffer << ".png";
 	// Create OpenCV image file, 8-bit, unsigned, 3 channels
 	Mat image1(Size(WIDTH, HEIGHT), CV_8UC3, (void*)f.get_color_frame().get_data(), Mat::AUTO_STEP);
@@ -89,45 +86,19 @@ void save_timestamp(std::string& dir, int count, std::string cam, double rgb_t, 
 	outfile2.close();
 }
 
-/*
-using pcl_ptr = pcl::PointCloud<pcl::PointXYZ>::Ptr;
-pcl_ptr points_to_pcl(const rs2::points& points)
-{
-	pcl_ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
-	auto sp = points.get_profile().as<rs2::video_stream_profile>();
-	cloud->width = sp.width();
-	cloud->height = sp.height();
-	cloud->is_dense = false;
-	cloud->points.resize(points.size());
-	auto ptr = points.get_vertices();
-	for (auto& p : cloud->points)
-	{
-		p.x = ptr->x;
-		p.y = ptr->y;
-		p.z = ptr->z;
-		ptr++;
-	}
-	return cloud;
-}
-float3 colors[]{ { 0.8f, 0.1f, 0.3f },
-				  { 0.1f, 0.9f, 0.5f },
-};
-// Declare pointcloud object for calculating pointclouds and texture mappings
+// Declare pointcloud object, for calculating pointclouds and texture mappings
 rs2::pointcloud pc;
 // We want the points object to be persistent so we can display the last cloud when a frame drops
 rs2::points points;
-void writePointcloud(rs2::frameset const& f, std::string& dir, int count, std::string cam) {
-	std::stringstream path1, path2;
-	// Set up path for images
-	sprintf(buffer, "%05d.pcd", count);
-	path1 << dir << "\\" << cam << "_pointcloud" << "\\" << "cam_" << cam << "_pointcloud_" << buffer;
-	auto depth = f.get_depth_frame();
-	auto points = pc.calculate(depth);
-	// Transform it PCL point cloud like in the exemple rs - pcl
-	ptr_cloud cloud = points_to_pcl(points);
-	pcl::io::savePCDFile(path1, *cloud);
+
+void writePointCloud(rs2::frameset const& f, std::string& dir, int count, std::string cam) {
+	// Set up path for pointclouds
+	sprintf(buffer, "%05d", count);
+	std::string path (dir + "\\" + cam + "_pointcloud\\cam_" + cam + "_pointcloud_" + buffer + ".ply");
+	pc.map_to(f.get_color_frame());
+	points = pc.calculate(f.get_depth_frame());
+	points.export_to_ply(path, f.get_color_frame());
 }
-*/
 
 int main(int argc, char* argv[]) try
 {
@@ -170,8 +141,8 @@ int main(int argc, char* argv[]) try
 		rs2::pipeline pipe(ctx);
 		rs2::config cfg;
 		cfg.enable_device(dev.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER));
-		cfg.enable_stream(RS2_STREAM_DEPTH, WIDTH, HEIGHT);
-		cfg.enable_stream(RS2_STREAM_COLOR, WIDTH, HEIGHT);
+		cfg.enable_stream(RS2_STREAM_DEPTH, WIDTH, HEIGHT, rs2_format::RS2_FORMAT_Z16, FPS);
+		cfg.enable_stream(RS2_STREAM_COLOR, WIDTH, HEIGHT, rs2_format::RS2_FORMAT_RGB8, FPS);
 		// Start streaming
 		pipe.start(cfg);
 		pipelines.emplace_back(pipe);
@@ -181,12 +152,14 @@ int main(int argc, char* argv[]) try
 	// Define object to be used to align to depth to color stream
 	rs2::align align_to_color(RS2_STREAM_COLOR);
 	// Capture frames to give autoexposure, etc. a chance to settle
-	for (auto i = 0; i < 100; ++i) {
+	for (auto i = 0; i < 30; ++i) {
 		for (auto&& pipe : pipelines) pipe.wait_for_frames();
 	}
 
 	rs2::frameset fs;
 	int count = 0;
+	bool save = false;			//switch to increment count or not
+	int counter = 0;
 	double delay;
 	double spf = 1.0 / FPS_MAX;
 	std::clock_t start;			//timer
@@ -206,6 +179,9 @@ int main(int argc, char* argv[]) try
 			rs2::frameset fs;
 			// Use non-blocking frames polling method to minimize UI impact
 			if (pipe.poll_for_frames(&fs)) {
+				counter++;
+				if (counter%2 == 0)
+					save = true;
 				if (TIMESTAMP || RGB_DEPTH_DIFF) {
 					rgb_t = fs.get_color_frame().get_timestamp();
 					depth_t = fs.get_depth_frame().get_timestamp();
@@ -213,7 +189,7 @@ int main(int argc, char* argv[]) try
 					//std::cout << "depth (epoch):" << std::setprecision(15) << depth_t << "\n";
 				}
 				if (RGB_DEPTH_DIFF) {
-					std::cout << "diff (ms) :" << std::setprecision(15) << rgb_t-depth_t << "\n";
+					std::cout << "diff (ms) :" << std::setprecision(15) << rgb_t - depth_t << "\n";
 				}
 				// Align newly-arrived frames to color viewport
 				fs = align_to_color.process(fs);
@@ -226,11 +202,8 @@ int main(int argc, char* argv[]) try
 							writeImages(fs, dirs[0], count, left);
 						if (TIMESTAMP)
 							save_timestamp(dirs[0], count, left, rgb_t, depth_t);
-						/*
-						if (POINTCLOUD) {
-							writePointcloud(fs, dirs[0], count, left);
-						}
-						*/
+						if (POINTCLOUD)
+							writePointCloud(fs, dirs[0], count, left);			
 					}
 					else {
 						if (RAW_DATA)
@@ -239,11 +212,8 @@ int main(int argc, char* argv[]) try
 							writeImages(fs, dirs[1], count, right);
 						if (TIMESTAMP)
 							save_timestamp(dirs[1], count, right, rgb_t, depth_t);
-						/*
-						if (POINTCLOUD) {
-							writePointcloud(fs, dirs[1], count, right);
-						}
-						*/
+						if (POINTCLOUD)
+							writePointCloud(fs, dirs[1], count, right);
 					}
 				}
 				isLeft = !isLeft;  // toggle is false then true
@@ -252,8 +222,11 @@ int main(int argc, char* argv[]) try
 					new_frames.emplace_back(f);
 			}
 		}
-		count++;
-		frames_this_second++;
+		if (save) {
+			count++;
+			frames_this_second++;
+			save = false;
+		}
 		// Convert the newly-arrived frames to render-friendly format
 		for (const auto& frame : new_frames) {
 			render_frames[frame.get_profile().unique_id()] = colorizer.process(frame);
