@@ -45,7 +45,7 @@ Project >> align-save properties >> C/C++ >> General >> Additional Include Direc
   Add C:\Program Files\vcpkg-master\installed\x64-windows\include;  
 
 ------------------------- Hardware  -------------------------  
-Attach camera sync cable  
+Attach camera sync cable https://www.mouser.com/pdfdocs/Multiple_Camera_WhitePaper_rev11.pdf  
 Plug left camera to left USB and right camera to right USB  
 Build code  
 Run Local Windows Debugger to start recording and streaming  
