@@ -28,10 +28,10 @@
 #define DISPLAY_REG_FPS_PER_FRAME false	// SET false to disable showing regular fps per frame on console output
 #define DISPLAY_FPS_PER_SECOND true		// SET false to disable showing fps per second on constole output
 #define RGB_DEPTH_DIFF false			// SET false to disable showing rgb-depth-diff on console output
-#define RAW_DATA false					// SET false to save rgb-depth as .bmp .png
+#define RAW_DATA true					// SET false to save rgb-depth as .bmp .png
 #define TIMESTAMP true					// SET false to disable saving timestamps in .txt, time in seconds
 #define CAM_SWITCHED true				// INVERT if left camera saving right images vice-versa
-#define POINTCLOUD true				// SET false to disable pointcloud
+#define POINTCLOUD true					// SET false to disable pointcloud
 
 // Helper function for writing timestamp to disk as a csv file
 void metadata_to_csv(const rs2::frame& frm, const std::string& filename);
@@ -245,12 +245,15 @@ int main(int argc, char* argv[]) try
 		if (DISPLAY_NEW_FPS_PER_FRAME)
 			std::cout << "new fps:" << 1.0 / duration2 << '\n';			   //timer
 		if (DISPLAY_FPS_PER_SECOND) {
+
+			/*
 			duration3 += duration2;
 			if (duration3 >= 1.0) {
 				std::cout << "fps: " << frames_this_second << '\n';
 				duration3 = 0.0;
 				frames_this_second = 0;
 			}
+			*/
 		}
 	}
 	return EXIT_SUCCESS;
