@@ -252,15 +252,12 @@ int main(int argc, char* argv[]) try
 		if (DISPLAY_NEW_FPS_PER_FRAME)
 			std::cout << "new fps:" << 1.0 / duration2 << '\n';			   //timer
 		if (DISPLAY_FPS_PER_SECOND) {
-
-			/*
 			duration3 += duration2;
 			if (duration3 >= 1.0) {
 				std::cout << "fps: " << frames_this_second << '\n';
 				duration3 = 0.0;
 				frames_this_second = 0;
 			}
-			*/
 		}
 	}
 	return EXIT_SUCCESS;
