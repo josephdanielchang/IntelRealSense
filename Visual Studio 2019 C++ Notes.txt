@@ -11,24 +11,20 @@
  V  Raw bits, binary output
  V  Output timestamp to text file
  V  Intrinsic parameters of 4 cameras (checkboard, matlab)
- V  FPS for streaming (6, 15, 30)
+ V  FPS for streaming (6, 15, 30, 60)
  V  Check FPS after all processing
  V  Save pointcloud
-    Master-Slave sync issue
-    FPS options (60)
+ V  Master-Slave sync, disable auto RS2_OPTION_DISABLE_AUTO_EXPOSURE 
+    Fix timestamp starting at 2 on right camera
+    Fix timestamp duplicates on right camera
+    
+FPS               60 60r 30 30r 15 15r 6 6r
+DUPLICATES LEFT   n  n   n   n   n  n  n  n
+DUPLICATES RIGHT  n  n   n   y   y  y  y  n
 
-fps for streaming
-2. check fps after all you own functions
-3.point cloud
-new messages
-4. sync issue
-5. different solution and fps optiomns
-
-
-Turn on ISO
-Turn on master/slave
-
-FPS for streaming, try to read from the API or own function
+FPS               60 60r 30 30r 15 15r 6 6r
+DUPLICATES LEFT   
+DUPLICATES RIGHT  
 
 =====================================================================
 ========================= COMPLETE TUTORIAL ========================= 
@@ -62,7 +58,7 @@ Project >> align-save properties >> C/C++ >> General >> Additional Include Direc
   Add C:\Program Files\vcpkg-master\installed\x64-windows\include;
 
 ------------------------- Hardware  -------------------------
-Attach camera sync cable
+Attach camera sync cable https://www.mouser.com/pdfdocs/Multiple_Camera_WhitePaper_rev11.pdf
 Plug left camera to left USB and right camera to right USB
 Build code
 Run Local Windows Debugger to start recording and streaming
@@ -72,22 +68,15 @@ Press stop debugging to stop recording and streaming
 =====================================================================
 =====================================================================
 
-------------------------- PCL -------------------------
-
-PCL Setup	  https://github.com/IntelRealSense/librealsense/tree/master/wrappers/pcl#windows
-
-If OpenCV_DIR error, add cmake to path in cmd line
-set PATH="C:\Program Files (x86)\CMake 2.8\bin\";%PATH%
-Then 
-
 ------------------------- MEX -------------------------
 
 Merge C++ with Matlab rectification
 
 ------------------------- Record with Intel Viewer  -------------------------
 
-Add sources >> Turn on stereo and rgb >> Set to 640x480
-Control >> Turn on intercamera sync >> Set cameras to mode 1 and 2 >> Record
+Add sources >> Turn on stereo and rgb >> Set to 640x480 and 30fps
+Stereo >> Control >> Turn on intercamera sync >> Set cameras to mode 1 and 2 >> Record
+Color >> Control >> Turn off Auto Exposure Priority
 
 ------------------------- LINKS -------------------------
 
@@ -102,8 +91,6 @@ Visual Studio C++ Walkthrough	https://docs.microsoft.com/en-us/cpp/ide/walkthrou
 PCL		  https://github.com/IntelRealSense/librealsense/blob/master/wrappers/pcl/pcl/rs-pcl.cpp
 PCL Setup	  https://writingovercoffeeblog.wordpress.com/2017/06/11/setup-pcl-on-visual-studio-2015-the-no-fuss-way/
 Save raw data	  https://github.com/IntelRealSense/librealsense/issues/1485
-https://github.com/dorodnic/librealsense/blob/text_sample/examples/capture/rs-capture.cpp
-
 
 ------------------------- SDK Examples Used -------------------------
 
