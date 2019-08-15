@@ -31,10 +31,10 @@
 #define RAW_DATA true					// SET false to save rgb-depth as .bmp .png
 #define TIMESTAMP true					// SET false to disable saving timestamps in .txt, time in seconds
 #define CAM_SWITCHED true				// INVERT if left camera saving right images vice-versa
-#define POINTCLOUD true					// SET false to disable pointcloud
+#define POINTCLOUD false				// SET false to disable pointcloud
 
 // Helper function for writing timestamp to disk as a csv file
-void metadata_to_csv(const rs2::frame& frm, const std::string& filename);
+void metadata_to_csv(const rs2::frame & frm, const std::string & filename);
 
 char buffer[50];
 
@@ -80,8 +80,8 @@ void save_timestamp(std::string& dir, int count, std::string cam, double rgb_t, 
 	std::ofstream outfile2;
 	outfile1.open(path1, std::ios_base::app);
 	outfile2.open(path2, std::ios_base::app);
-	outfile1 << count << ", " << std::setprecision(15) << rgb_t << "\n";
-	outfile2 << count << ", " << std::setprecision(15) << depth_t << "\n";
+	outfile1 << count << ", " << std::setprecision(25) << rgb_t << "\n";
+	outfile2 << count << ", " << std::setprecision(25) << depth_t << "\n";
 	outfile1.close();
 	outfile2.close();
 }
@@ -94,7 +94,7 @@ rs2::points points;
 void writePointCloud(rs2::frameset const& f, std::string& dir, int count, std::string cam) {
 	// Set up path for pointclouds
 	sprintf(buffer, "%05d", count);
-	std::string path (dir + "\\" + cam + "_pointcloud\\cam_" + cam + "_pointcloud_" + buffer + ".ply");
+	std::string path(dir + "\\" + cam + "_pointcloud\\cam_" + cam + "_pointcloud_" + buffer + ".ply");
 	pc.map_to(f.get_color_frame());
 	points = pc.calculate(f.get_depth_frame());
 	points.export_to_ply(path, f.get_color_frame());
@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) try
 	rs2::colorizer					colorizer;      // Utility class to convert depth data RGB colorspace
 	std::vector<rs2::pipeline>		pipelines;
 	std::string dirs[] = { "left_data", "right_data" };
-	std::string subdirs[] = { "rgb", "intel_depth", "pointcloud"};
+	std::string subdirs[] = { "rgb", "intel_depth", "pointcloud" };
 	std::string path;
 	bool isLeft = true;
 	std::string left = "left";
@@ -134,13 +134,20 @@ int main(int argc, char* argv[]) try
 		isLeft = !isLeft;
 
 	texture depth_image, color_image;     // Helpers for rendering images
+	int mode = 1;						  // Initialize as master
 
 	// Start a streaming pipe per each connected device
-	for (auto&& dev : ctx.query_devices()) {
+	for (auto&& device : ctx.query_devices()) {
 		// Declare RealSense pipeline, encapsulating the actual device and sensors
 		rs2::pipeline pipe(ctx);
 		rs2::config cfg;
-		cfg.enable_device(dev.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER));
+		rs2::sensor depth = device.query_sensors()[0];
+		rs2::sensor color = device.query_sensors()[1];
+		depth.set_option(RS2_OPTION_INTER_CAM_SYNC_MODE, mode);
+		mode = 2;
+		// Don't allow auto exposure to lower fps to let more light in
+		color.set_option(RS2_OPTION_AUTO_EXPOSURE_PRIORITY, 0.f);
+		cfg.enable_device(device.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER));
 		cfg.enable_stream(RS2_STREAM_DEPTH, WIDTH, HEIGHT, rs2_format::RS2_FORMAT_Z16, FPS);
 		cfg.enable_stream(RS2_STREAM_COLOR, WIDTH, HEIGHT, rs2_format::RS2_FORMAT_RGB8, FPS);
 		// Start streaming
@@ -180,7 +187,7 @@ int main(int argc, char* argv[]) try
 			// Use non-blocking frames polling method to minimize UI impact
 			if (pipe.poll_for_frames(&fs)) {
 				counter++;
-				if (counter%2 == 0)
+				if (counter % 2 == 0)
 					save = true;
 				if (TIMESTAMP || RGB_DEPTH_DIFF) {
 					rgb_t = fs.get_color_frame().get_timestamp();
@@ -203,7 +210,7 @@ int main(int argc, char* argv[]) try
 						if (TIMESTAMP)
 							save_timestamp(dirs[0], count, left, rgb_t, depth_t);
 						if (POINTCLOUD)
-							writePointCloud(fs, dirs[0], count, left);			
+							writePointCloud(fs, dirs[0], count, left);
 					}
 					else {
 						if (RAW_DATA)
