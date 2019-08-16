@@ -15,16 +15,20 @@
  V  Check FPS after all processing
  V  Save pointcloud
  V  Master-Slave sync, disable auto RS2_OPTION_DISABLE_AUTO_EXPOSURE 
-    Fix timestamp starting at 2 on right camera
-    Fix timestamp duplicates on right camera
+ V  Fix timestamp duplicates and skips
+    Ensure left and right cameras synchronized
     
-FPS               60 60r 30 30r 15 15r 6 6r
-DUPLICATES LEFT   n  n   n   n   n  n  n  n
-DUPLICATES RIGHT  n  n   n   y   y  y  y  n
+Check all PNGs
 
-FPS               60 60r 30 30r 15 15r 6 6r
-DUPLICATES LEFT   
-DUPLICATES RIGHT  
+FPS               60    60r 30 30r 15 15r 6 6r	(w/o HW sync)
+DUPLICATES LEFT   n     n   n   n   n  n  n  n
+DUPLICATES RIGHT  n     n   n   y   y  y  y  n
+
+FPS               60    60r  30    30r   15    15r   6        6r    (w/o HW sync)
+DUPLICATES LEFT   n     n    n     n     n     n     n        n 
+DUPLICATES RIGHT  n     n    n     y     y     y     y        y
+DEPTH TIME DIFF   16/33 16/0 33/0  33/0  0->66 0/66  0/166    
+RGB TIME DIFF     15/32 18/1 50/16 18/15 4->71 34/67 0/70/100 0/166
 
 =====================================================================
 ========================= COMPLETE TUTORIAL ========================= 
