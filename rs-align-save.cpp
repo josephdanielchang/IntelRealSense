@@ -3,7 +3,6 @@
 // Press stop debugging to stop recording
 // Ensure left right frames in correct folders in final build with RAW_DATA false and CAM_SWITCHED
 // Delete timer in final build
-// Change initial exposure from 30 back to 100
 
 #include <librealsense2/rs.hpp>     // Include RealSense Cross Platform API
 #include <opencv2/opencv.hpp>
@@ -26,7 +25,7 @@
 #define FPS_MAX 200  					// SET max fps to stream (max stable fps varies), ignored by slower streams
 #define DISPLAY_NEW_FPS_PER_FRAME false	// SET false to disable showing cutoff fps per frame on console output
 #define DISPLAY_REG_FPS_PER_FRAME false	// SET false to disable showing regular fps per frame on console output
-#define DISPLAY_FPS_PER_SECOND true		// SET false to disable showing fps per second on constole output
+#define DISPLAY_FPS_PER_SECOND false	// SET false to disable showing fps per second on constole output
 #define RGB_DEPTH_DIFF false			// SET false to disable showing rgb-depth-diff on console output
 #define RAW_DATA true					// SET false to save rgb-depth as .bmp .png
 #define TIMESTAMP true					// SET false to disable saving timestamps in .txt, time in seconds
@@ -100,6 +99,27 @@ void writePointCloud(rs2::frameset const& f, std::string& dir, int count, std::s
 	points.export_to_ply(path, f.get_color_frame());
 }
 
+int setSleep() {	// minimum sleep required to prevent duplicate frames and timestamps
+	if (FPS == 6 && RAW_DATA)
+		return 60;
+	else if (FPS == 6 && !RAW_DATA)
+		return 30;
+	else if (FPS == 15 && RAW_DATA)
+		return 20;
+	else if (FPS == 15 && !RAW_DATA)
+		return 0;
+	else if (FPS == 30 && RAW_DATA)
+		return 5;
+	else if (FPS == 30 && !RAW_DATA)
+		return 10;
+	else if (FPS == 60 && RAW_DATA)
+		return 0;
+	else if (FPS == 60 && !RAW_DATA)
+		return 0;
+	else
+		return EXIT_FAILURE;
+}
+
 int main(int argc, char* argv[]) try
 {
 	// Create a simple OpenGL window for rendering:
@@ -159,12 +179,11 @@ int main(int argc, char* argv[]) try
 	// Define object to be used to align to depth to color stream
 	rs2::align align_to_color(RS2_STREAM_COLOR);
 	// Capture frames to give autoexposure, etc. a chance to settle
-	for (auto i = 0; i < 30; ++i) {
+	for (auto i = 0; i < 30; ++i)
 		for (auto&& pipe : pipelines) pipe.wait_for_frames();
-	}
 
 	rs2::frameset fs;
-	int count = 0;
+	int count = -1;
 	bool save = false;			//switch to increment count or not
 	int counter = 0;
 	double delay;
@@ -177,23 +196,25 @@ int main(int argc, char* argv[]) try
 	double rgb_t;				//timestamp
 	double depth_t;				//timestamp
 
+	int pause = setSleep();
+
 	// Main app loop
 	while (app) {
 		start = std::clock();										  //timer
 		// Collect the new frames from all the connected devices
 		std::vector<rs2::frame> new_frames;
+		//Sleep(pause);						//prevents duplicate frames
 		for (auto&& pipe : pipelines) {
 			rs2::frameset fs;
 			// Use non-blocking frames polling method to minimize UI impact
 			if (pipe.poll_for_frames(&fs)) {
+				Sleep(pause);						//prevents duplicate frames
 				counter++;
 				if (counter % 2 == 0)
 					save = true;
 				if (TIMESTAMP || RGB_DEPTH_DIFF) {
 					rgb_t = fs.get_color_frame().get_timestamp();
 					depth_t = fs.get_depth_frame().get_timestamp();
-					//std::cout << "rgb (epoch)  :" << std::setprecision(15) << rgb_t << "\n";
-					//std::cout << "depth (epoch):" << std::setprecision(15) << depth_t << "\n";
 				}
 				if (RGB_DEPTH_DIFF) {
 					std::cout << "diff (ms) :" << std::setprecision(15) << rgb_t - depth_t << "\n";
@@ -235,9 +256,8 @@ int main(int argc, char* argv[]) try
 			save = false;
 		}
 		// Convert the newly-arrived frames to render-friendly format
-		for (const auto& frame : new_frames) {
+		for (const auto& frame : new_frames)
 			render_frames[frame.get_profile().unique_id()] = colorizer.process(frame);
-		}
 		// Present all the collected frames with openGl mosaic
 		app.show(render_frames);
 
