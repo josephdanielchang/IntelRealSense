@@ -32,13 +32,13 @@ Right click project >> Set as Startup Project
 Go to https://docs.microsoft.com/en-us/cpp/build/vcpkg?view=vs-2019  
 Download to C:/Program Files  
 Open cmd window as admin  
-cd C:/Program Files/vcpkg-master  
-bootstrap-vcpkg.bat  
-vcpkg search opencv  
-If machine x64 not x86: set VCPKG_DEFAULT_TRIPLET=x64-window  
-vcpkg install opencv  
-vcpkg list  
-vcpkg integrate install (integrates vcpkg with Visual Studio)  
+Type: cd C:/Program Files/vcpkg-master  
+Type: bootstrap-vcpkg.bat  
+Type: vcpkg search opencv  
+If machine x64 not x86, type: set VCPKG_DEFAULT_TRIPLET=x64-window  
+Type: vcpkg install opencv  
+Type: vcpkg list  
+Type: vcpkg integrate install (integrates vcpkg with Visual Studio)  
 
 ------------------------- Add OpenCV to Visual Studio  -------------------------  
 Project >> align-save properties >> C/C++ >> General >> Additional Include Directories  
