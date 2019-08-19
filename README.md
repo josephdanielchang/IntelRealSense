@@ -9,13 +9,14 @@
  V  Allow user to set fps, resolution  
  V  Check single camera rgb/depth sync timestamp difference  
  V  Raw bits, binary output  
- V  Output timestamp to text file  
+ V  Output timestamp to text file   
  V  Intrinsic parameters of 4 cameras (checkboard, matlab)  
- V  FPS for streaming (6, 15, 30)  
+ V  FPS for streaming (6, 15, 30, 60)  
  V  Check FPS after all processing  
  V  Save pointcloud  
-    Master-Slave sync issue  
-    FPS options (60)  
+ V  Master-Slave sync, disable auto RS2_OPTION_DISABLE_AUTO_EXPOSURE   
+ V  Fix timestamp duplicates and skips  
+    Ensure left and right cameras synchronized  
     
 ------------------------- Download SDK Examples  -------------------------  
 Get laptop  
