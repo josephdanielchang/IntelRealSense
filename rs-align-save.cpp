@@ -32,9 +32,6 @@
 #define CAM_SWITCHED true				// INVERT if left camera saving right images vice-versa
 #define POINTCLOUD false				// SET false to disable pointcloud
 
-// Helper function for writing timestamp to disk as a csv file
-void metadata_to_csv(const rs2::frame & frm, const std::string & filename);
-
 char buffer[50];
 
 void save_raw_data(rs2::frameset const& f, std::string& dir, int count, std::string cam) {
