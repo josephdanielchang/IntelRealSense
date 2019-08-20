@@ -179,7 +179,6 @@ int main(int argc, char* argv[]) try
 	for (auto i = 0; i < 30; ++i)
 		for (auto&& pipe : pipelines) pipe.wait_for_frames();
 
-	rs2::frameset fs;
 	int count = -1;
 	bool save = false;			//switch to increment count or not
 	int counter = 0;
