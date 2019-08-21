@@ -16,19 +16,8 @@
  V  Save pointcloud
  V  Master-Slave sync, disable auto RS2_OPTION_DISABLE_AUTO_EXPOSURE 
  V  Fix timestamp duplicates and skips
-    Ensure left and right cameras synchronized
-    
-Check all PNGs
-
-FPS               60    60r 30 30r 15 15r 6 6r	(w/o HW sync)
-DUPLICATES LEFT   n     n   n   n   n  n  n  n
-DUPLICATES RIGHT  n     n   n   y   y  y  y  n
-
-FPS               60    60r  30    30r   15    15r   6        6r    (w/o HW sync)
-DUPLICATES LEFT   n     n    n     n     n     n     n        n 
-DUPLICATES RIGHT  n     n    n     y     y     y     y        y
-DEPTH TIME DIFF   16/33 16/0 33/0  33/0  0->66 0/66  0/166    
-RGB TIME DIFF     15/32 18/1 50/16 18/15 4->71 34/67 0/70/100 0/166
+ V  Make sure index starts at 1
+ V  Ensure left and right cameras synchronized
 
 =====================================================================
 ========================= COMPLETE TUTORIAL ========================= 
@@ -218,11 +207,3 @@ Used to concatenate strings
 ------------------------- (void*) -------------------------
 
 General pointer that can point to anything
-
-
-
-
-
-
-
-
