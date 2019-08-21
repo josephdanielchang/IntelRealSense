@@ -27,24 +27,24 @@
 #define DISPLAY_REG_FPS_PER_FRAME false	// SET false to disable showing regular fps per frame on console output
 #define DISPLAY_FPS_PER_SECOND false	// SET false to disable showing fps per second on constole output
 #define RGB_DEPTH_DIFF false			// SET false to disable showing rgb-depth-diff on console output
-#define RAW_DATA false					// SET false to save rgb-depth as .bmp .png
+#define RAW_DATA true					// SET false to save rgb-depth as .bmp .png
 #define TIMESTAMP true					// SET false to disable saving timestamps in .txt, time in seconds
 #define CAM_SWITCHED true				// INVERT if left camera saving right images vice-versa
 #define POINTCLOUD false				// SET false to disable pointcloud
 
 int setSleep() {	// minimum sleep required to prevent duplicate frames and timestamps
 	if (FPS == 6 && RAW_DATA)
-		return 60;
-	else if (FPS == 6 && !RAW_DATA)
-		return 30;
-	else if (FPS == 15 && RAW_DATA)
+		return 80;
+	else if (FPS == 6 && !RAW_DATA) //CURRENT
+		return 40;
+	else if (FPS == 15 && RAW_DATA)	//BROKEN
 		return 20;
 	else if (FPS == 15 && !RAW_DATA)
 		return 0;
 	else if (FPS == 30 && RAW_DATA)
 		return 5;
 	else if (FPS == 30 && !RAW_DATA)
-		return 10;
+		return 0;
 	else if (FPS == 60 && RAW_DATA)
 		return 0;
 	else if (FPS == 60 && !RAW_DATA)
@@ -177,14 +177,15 @@ int main(int argc, char* argv[]) try
 		for (auto&& pipe : pipelines) pipe.wait_for_frames();
 
 	int count = -1;
+	int frameNum = 0;
 	bool toggle = true;
 	int counter = 0;
 	double delay;
 	double spf = 1.0 / FPS_MAX;
 	std::clock_t start;			//timer
-	double duration1;			//timer before sleep
-	double duration2;			//timer after sleep
-	double duration3 = 0.0;		//timer counting to 1 second
+	//double duration1;			//timer before sleep
+	//double duration2;			//timer after sleep
+	//double duration3 = 0.0;		//timer counting to 1 second
 	int frames_this_second = 0; //counts frames to 1 second
 	double rgb_t;				//timestamp
 	double depth_t;				//timestamp
@@ -200,7 +201,7 @@ int main(int argc, char* argv[]) try
 		std::cout << "count:" << count << "\n";
 		for (auto&& pipe : pipelines) {
 			rs2::frameset fs;
-			Sleep(pause);						
+			Sleep(pause);				
 			// Use non-blocking frames polling method to minimize UI impact
 			if (pipe.poll_for_frames(&fs)) {
 				counter++;
@@ -224,6 +225,7 @@ int main(int argc, char* argv[]) try
 			fsRight = temp;
 		}
 		if (count > 0 && toggle == true) { // so left an right pipes polled already
+			frameNum++;
 			//LEFT CAMERA
 			// Align newly-arrived frames to color viewport
 			fsLeft = align_to_color.process(fsLeft);
@@ -236,13 +238,13 @@ int main(int argc, char* argv[]) try
 			}
 			// Save processed frames and pointcloud to directories
 			if (RAW_DATA)
-				save_raw_data(fsLeft, dirs[0], count, left);
+				save_raw_data(fsLeft, dirs[0], frameNum, left);
 			else
-				writeImages(fsLeft, dirs[0], count, left);
+				writeImages(fsLeft, dirs[0], frameNum, left);
 			if (TIMESTAMP)
-				save_timestamp(dirs[0], count, left, rgb_t, depth_t);
+				save_timestamp(dirs[0], frameNum, left, rgb_t, depth_t);
 			if (POINTCLOUD)
-				writePointCloud(fsLeft, dirs[0], count, left);
+				writePointCloud(fsLeft, dirs[0], frameNum, left);
 			// Split rs2::frameset containers into separate frames and store with standard C++ container for later use
 			for (const rs2::frame& f : fsLeft)
 				new_frames.emplace_back(f);
@@ -258,13 +260,13 @@ int main(int argc, char* argv[]) try
 			}
 			// Save processed frames and pointcloud to directories
 			if (RAW_DATA)
-				save_raw_data(fsRight, dirs[1], count, right);
+				save_raw_data(fsRight, dirs[1], frameNum, right);
 			else
-				writeImages(fsRight, dirs[1], count, right);
+				writeImages(fsRight, dirs[1], frameNum, right);
 			if (TIMESTAMP)
-				save_timestamp(dirs[1], count, right, rgb_t, depth_t);
+				save_timestamp(dirs[1], frameNum, right, rgb_t, depth_t);
 			if (POINTCLOUD)
-				writePointCloud(fsRight, dirs[1], count, right);
+				writePointCloud(fsRight, dirs[1], frameNum, right);
 			// Split rs2::frameset containers into separate frames and store with standard C++ container for later use
 			for (const rs2::frame& f : fsRight)
 				new_frames.emplace_back(f);
