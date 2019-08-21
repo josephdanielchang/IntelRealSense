@@ -199,7 +199,6 @@ int main(int argc, char* argv[]) try
 		start = std::clock();										  //timer
 		// Collect the new frames from all the connected devices
 		std::vector<rs2::frame> new_frames;
-		//Sleep(pause);						//prevents duplicate frames
 		for (auto&& pipe : pipelines) {
 			rs2::frameset fs;
 			// Use non-blocking frames polling method to minimize UI impact
