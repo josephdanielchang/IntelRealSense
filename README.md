@@ -1,5 +1,3 @@
-# Intel RealSense 
-
 rs-align-save-v1.cpp
 - Poll left camera, Process, Poll right camera, Process
 - Real time
