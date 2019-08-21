@@ -1,13 +1,19 @@
 # Intel RealSense 
 
 rs-align-save-v1.cpp
-- Poll left camera, Process, Poll right camera, Process  
+- Poll left camera, Process, Poll right camera, Process
+- Real time
+- Frames poorly synchronized
 
 rs-align-save-v2.cpp	
 - Poll left camera, Poll right camera, Process, Process  
+- Real time
+- Frames mostly synchronized
 
 rs-save-to-disk.cpp 
 - Extract .bag files, Process, Ensure synchronized timestamps  
+- Post processing
+
 
 ## Software 
 
