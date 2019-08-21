@@ -1,3 +1,7 @@
+rs-align-save-v1.cpp	 Poll left camera, Process, Poll right camera, Process
+rs-align-save-v2.cpp	 Poll left camera, Poll right camera, Process, Process
+rs-save-to-disk.cpp   Extract .bag files, Process, Ensure synchronized timestamps
+
 ------------------------- SOFTWARE -------------------------  
 
  V  2 camera RGB/depth stream  
