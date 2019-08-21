@@ -21,7 +21,7 @@
 #define F_OK 0
 #define WIDTH 640						// SET stream width
 #define HEIGHT 480						// SET stream height
-#define FPS 6							// SET camera fps (6,15,30,60)
+#define FPS 30							// SET camera fps (6,15,30,60)
 #define FPS_MAX 200  					// SET max fps to stream (max stable fps varies), ignored by slower streams
 #define DISPLAY_NEW_FPS_PER_FRAME false	// SET false to disable showing cutoff fps per frame on console output
 #define DISPLAY_REG_FPS_PER_FRAME false	// SET false to disable showing regular fps per frame on console output
