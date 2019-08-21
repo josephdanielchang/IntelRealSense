@@ -1,3 +1,5 @@
+# Intel RealSense 
+
 rs-align-save-v1.cpp
 - Poll left camera, Process, Poll right camera, Process  
 rs-align-save-v2.cpp	
@@ -5,7 +7,7 @@ rs-align-save-v2.cpp
 rs-save-to-disk.cpp 
 - Extract .bag files, Process, Ensure synchronized timestamps  
 
-------------------------- SOFTWARE -------------------------  
+## Software 
 
  V  2 camera RGB/depth stream  
  V  Map depth to color  
@@ -25,7 +27,7 @@ rs-save-to-disk.cpp
  V  Fix timestamp duplicates and skips  
     Ensure left and right cameras synchronized  
     
-------------------------- Download SDK Examples  -------------------------  
+## Download SDK Examples
 Get laptop  
 Download Visual Studio C++  
 Go to https://github.com/IntelRealSense/librealsense/releases  
@@ -36,7 +38,7 @@ Open examples by clicking on ar-basic.vcxproj
 Replace ar-basic.cpp code with own code  
 Right click project >> Set as Startup Project  
 
-------------------------- Install OpenCV with VCPKG -------------------------  
+## Install OpenCV with VCPKG 
 Go to https://docs.microsoft.com/en-us/cpp/build/vcpkg?view=vs-2019  
 Download to C:/Program Files  
 Open cmd window as admin  
@@ -48,11 +50,11 @@ Type: vcpkg install opencv
 Type: vcpkg list  
 Type: vcpkg integrate install (integrates vcpkg with Visual Studio)  
 
-------------------------- Add OpenCV to Visual Studio  -------------------------  
+## Add OpenCV to Visual Studio
 Project >> align-save properties >> C/C++ >> General >> Additional Include Directories  
   Add C:\Program Files\vcpkg-master\installed\x64-windows\include;  
 
-------------------------- Hardware  -------------------------  
+## Hardware
 Attach camera sync cable https://www.mouser.com/pdfdocs/Multiple_Camera_WhitePaper_rev11.pdf  
 Plug left camera to left USB and right camera to right USB  
 Build code  
