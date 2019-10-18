@@ -18,6 +18,8 @@
  V  Fix timestamp duplicates and skips
  V  Make sure index starts at 1
  V  Ensure left and right cameras synchronized
+    Use software-device to unack .bin files
+    Write new save_raw_data to save matrix with Matlab save
 
 =====================================================================
 ========================= COMPLETE TUTORIAL ========================= 
@@ -60,6 +62,11 @@ Press stop debugging to stop recording and streaming
 =====================================================================
 =====================================================================
 =====================================================================
+
+------------------------- CMAKE -------------------------
+
+Tutorial to build projects
+https://www.youtube.com/watch?v=LxHV-KNEG3k
 
 ------------------------- MEX -------------------------
 
@@ -207,3 +214,7 @@ Used to concatenate strings
 ------------------------- (void*) -------------------------
 
 General pointer that can point to anything
+
+
+
+
