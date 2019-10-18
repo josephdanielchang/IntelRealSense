@@ -8,6 +8,9 @@ rs-align-save-v2.cpp
 - Real time
 - Frames mostly synchronized
 
+rs-align-v1.cpp
+- For testing FPS without saving
+
 rs-save-to-disk.cpp 
 - Extract .bag files, Process, Ensure synchronized timestamps  
 - Post processing
