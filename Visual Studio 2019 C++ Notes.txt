@@ -48,6 +48,11 @@ Type: vcpkg install opencv
 Type: vcpkg list  
 Type: vcpkg integrate install (integrates vcpkg with Visual Studio)  
 
+------------------------- Run realsense_metadata_win10 script -------------------------
+
+https://github.com/IntelRealSense/librealsense/blob/master/doc/installation_windows.md
+https://github.com/IntelRealSense/librealsense/blob/master/scripts/realsense_metadata_win10.ps1
+
 ------------------------- Add OpenCV to Visual Studio  -------------------------
 Project >> align-save properties >> C/C++ >> General >> Additional Include Directories
   Add C:\Program Files\vcpkg-master\installed\x64-windows\include;
