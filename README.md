@@ -4,9 +4,14 @@ rs-align-save-v1.cpp
 - Frames poorly synchronized
 
 rs-align-save-v2.cpp	
-- Poll left camera, Poll right camera, Process, Process  
+- Poll left camera, Poll right camera, Process
 - Real time
 - Frames mostly synchronized
+
+multi-cam.cpp
+- Timestamps and align
+- Runs at correct fps without align
+- Runs at correct fps with align (except 60fps runs at 25fps)
 
 single-cam.cpp
 - For testing FPS without saving with one camera
