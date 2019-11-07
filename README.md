@@ -42,7 +42,7 @@ rs-save-to-disk.cpp
  V  Save pointcloud  
  V  Master-Slave sync, disable auto RS2_OPTION_DISABLE_AUTO_EXPOSURE   
  V  Fix timestamp duplicates and skips  
-    Ensure left and right cameras synchronized  
+ V  Ensure left and right cameras synchronized  
     
 ## Download SDK Examples
 Get laptop  
