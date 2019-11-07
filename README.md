@@ -1,7 +1,10 @@
 multi-cam.cpp
 - Timestamps, align, pointcloud, saving options
 - Runs at properly at 6, 15, 30 fps
-- Frames saved to vector in memory
+-	Made for streaming with two Intel RealSense cameras
+-	Frames saved in fssLeft and fssRight vectors in memory
+-	Commented out if(POINTCLOUD) and if(SAVE_PNG) to prevent fps lowering
+-	Before running: enable SAVE_PNG to check frames saved in correct directories - if not invert CAM_SWITCHED
 
 rs-align-save-v1.cpp
 - Poll left camera, Process, Poll right camera, Process
@@ -51,8 +54,8 @@ Go to https://github.com/IntelRealSense/librealsense/releases
 Go to Assets  
 Download latest Intel.RealSense.SDK-WIN10-2.24.0939.exe  
 Go to Local Disk (C:) -> Program Files (x86) -> IntelRealSense SDK 2.0  
-Open examples by clicking on ar-basic.vcxproj  
-Replace ar-basic.cpp code with own code  
+Open examples by clicking on multicam.vcxproj  
+Replace rs-multicam.cpp code with own rs-multicam.cpp code  
 Right click project >> Set as Startup Project  
 
 ## Install OpenCV with VCPKG 
@@ -74,6 +77,6 @@ Project >> align-save properties >> C/C++ >> General >> Additional Include Direc
 ## Hardware
 Attach camera sync cable https://www.mouser.com/pdfdocs/Multiple_Camera_WhitePaper_rev11.pdf  
 Plug left camera to left USB and right camera to right USB  
-Build code  
+Build code
 Run Local Windows Debugger to start recording and streaming  
 Press stop debugging to stop recording and streaming  
