@@ -1,3 +1,8 @@
+multi-cam.cpp
+- Timestamps, align, pointcloud, saving options
+- Runs at properly at 6, 15, 30 fps
+- Frames saved to vector in memory
+
 rs-align-save-v1.cpp
 - Poll left camera, Process, Poll right camera, Process
 - Real time
@@ -7,11 +12,6 @@ rs-align-save-v2.cpp
 - Poll left camera, Poll right camera, Process
 - Real time
 - Frames mostly synchronized
-
-multi-cam.cpp
-- Timestamps and align
-- Runs at correct fps without align
-- Runs at correct fps with align (except 60fps runs at 25fps)
 
 single-cam.cpp
 - For testing FPS without saving with one camera
