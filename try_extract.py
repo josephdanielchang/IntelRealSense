@@ -51,14 +51,15 @@ def main():
             time_frame = frames.get_timestamp()
             time_utc = time_frame
             new_row = [i, time_utc]
+            
             # Save timestamp as csv file and get png picture files
             with open(argument['csvfile'], 'a') as csvfile:
                 writer = csv.writer(csvfile)
                 writer.writerow(new_row)
             csvfile.close()
 
-            cv2.imwrite(argument['depth_directory'] + "/" + str(i).zfill(6) + "depth.png", depth_image)  ## comment out if no depth
-            cv2.imwrite(argument['rgb_directory'] + "/" + str(i).zfill(6) + "rgb.png", bgr_image)
+            cv2.imwrite(argument['depth_directory'] + "/depth" + str(i).zfill(6) + ".png", depth_image)  ## comment out if no depth
+            cv2.imwrite(argument['rgb_directory'] + "/rgb" + str(i).zfill(6) + ".png", bgr_image)
             i += 1
     finally:
         pass
@@ -71,11 +72,11 @@ if __name__ == "__main__":
     # args = parser.parse_args()
     argument = {}
     # CHANGE output depth directory
-    argument['depth_directory'] = 'C:\\Users\\josep\\OneDrive\\Documents\\Research Fall 2019\\Processed Data\\intel_depth'
+    argument['depth_directory'] = 'C:\\Users\\josep\\OneDrive\\Documents\\Research_Fall_2019\\Processed Data\\intel_depth'
     # CHANGE output rgb directory
-    argument['rgb_directory'] = 'C:\\Users\\josep\\OneDrive\\Documents\\Research Fall 2019\\Processed Data\\rgb'
+    argument['rgb_directory'] = 'C:\\Users\\josep\\OneDrive\\Documents\\Research_Fall_2019\\Processed Data\\rgb'
     # CHANGE output timestamp directory
-    argument['csvfile'] = 'C:\\Users\\josep\\OneDrive\\Documents\\Research Fall 2019\\Processed Data\\timestamps.csv'
+    argument['csvfile'] = 'C:\\Users\\josep\\OneDrive\\Documents\\Research_Fall_2019\\Processed Data\\timestamps.csv'
     # CHANGE rosbag directory
     argument['baginput'] = '20191114_130938.bag'
     print(argument)
