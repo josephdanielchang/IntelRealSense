@@ -16,16 +16,9 @@ rs-align-save-v2.cpp
 - Real time
 - Frames mostly synchronized
 
-single-cam.cpp
-- For testing FPS without saving with one camera
-
-dual-cam.cpp
-- For testing FPS without saving with two cameras
-
 rs-save-to-disk.cpp 
 - Extract .bag files, Process, Ensure synchronized timestamps  
 - Post processing
-
 
 ## Software 
 
