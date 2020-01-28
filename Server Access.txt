@@ -1,0 +1,137 @@
+PACKAGES
+sudo apt update
+sudo apt -y upgrade
+sudo apt install gcc
+sudo apt install git
+git clone https://github.com/tinghuiz/SfMLearner.git
+
+Setting up Python Virtual Environment on Ubuntu
+https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-programming-environment-on-ubuntu-18-04-quickstart
+
+Setting up Conda Virtual Environment on Ubuntu
+https://www.digitalocean.com/community/tutorials/how-to-install-anaconda-on-ubuntu-18-04-quickstart
+
+SERVER LOGIN 
+ssh joseph@132.239.24.58
+
+ID
+<username> | <initial password> 
+joseph | CAt$4rEJloqt
+benjamin | CAt$4rEJloqt
+
+COPY FILE FROM LOCAL TO REMOTE SSH
+scp /home/josephdanielchang/Documents/file.sh joseph@137.110.111.131:/home/joseph
+COPY FOLDER FROM LOCAL TO REMOTE SSH
+scp -r /home/josephdanielchang/Documents/file.sh joseph@137.110.111.131:/home/joseph
+COPY FILE FROM REMOTE TO LOCAL SSH
+scp joseph@137.110.111.131:/home/joseph/file.sh /home/josephdanielchang/Documents
+COPY FOLDER FROM REMOTE TO LOCAL SSH
+scp -r joseph@137.110.111.131:/home/joseph/file.sh /home/josephdanielchang/Documents
+
+RUN SCRIPT	SUSPEND JOB	RUN JOB IN BACKGROUND
+bash file.sh	  ctrl+z		 bg	
+
+ADD TO SCRIPT FOR CONTINOUS DOWNLOAD
+wget -c 
+
+REMOVE FILE
+rm -r file
+rm -rf folder (write-protected file)
+
+RUN PROCESS IN BACKGROUND
+[detaching session]
+tmux new -s NAME
+run script using current terminal instance
+crtl+b => c (create new instance within session)
+tmux detach 
+
+[see listed sessions]
+tmux list-sessions
+[kill session]
+tmux kill-session -t targetSession
+mv fo
+[reattaching session]
+tmux attach -t NAME
+(to get back to instance, crtl+b => n)
+
+OPEN CONDA ENVIRONMENT
+conda create -n depth_estimation python=3
+conda activate depth_estimation
+conda deactivate [logout]
+conda env remove -n depth_estimation [delete]
+conda list [show packages]
+
+INSTALL CONDA PACKAGES
+conda install -n depth_estimation <package-name>
+or
+conda config --add channels conda-forge 
+conda install <package-name>
+conda config --remove channels NOT_WANTED
+or
+pip install <package-name>
+pip uninstall <package-name>
+
+REMOVE CONDA CHANNELS
+conda config --show channels [show channels]
+conda remove -n depth_estimation scipy
+
+CURRENT CONDA ENVS
+depth_estimation: tensorflow_Zhou
+depth_estimation_pytorch: pytorch_Zhou
+voca_env
+
+OPEN NEW PROMPT
+Ctrl+Shift+T (use to run tensorboard during training)
+
+SETUP GIT
+git clone https://github.com/project
+git init (in directory)
+git remote add origin https://github.com/project
+
+git config --global user.name "josephdanielchang"
+git config --global user.email josephdanielchang@yahoo.com
+
+Move formatted_data, raw_data, models, test_depth_output out
+git add . (all) OR git add filename
+git commit -m "message"
+git log
+git push -f origin master (force updates origin master)
+git push -u origin master
+
+git stash (stash away code changes)
+git pull (pull new repo)
+
+git reset --soft HEAD~1 (delete previous non-pushed commit)
+git rebase -i 21bc9d82d7bc46e74168877d11684dca
+git push
+git pull
+
+remote: Repository not found
+fatal: repository 'https://github.com/MyRepo/project.git/' not found
+git credential-manager uninstall
+git credential-manager install
+
+GPU
+with tf.device("/gpu:0")
+	#setup operations
+with tf.Session() as sess:
+	#run your code
+
+TENSORFLOW
+PREPARE DATA
+python3 data/prepare_train_data.py --dataset_dir=./kitti_raw_data/ --dataset_name='kitti_raw_eigen' --dump_root=./formatted/data/ --seq_length=3 --img_width=416 --img_height=128 --num_threads=4
+TRAIN MODEL
+python3 train.py --dataset_dir=./formatted_data/ --checkpoint_dir=./checkpoints/ --img_width=416 --img_height=128 --batch_size=4
+RUN MODEL
+python3 test_kitti_depth.py --dataset_dir=./raw_data/cam_1_1_trim_zoom_1/ --output_dir ./depth_output_test/cam_1_1_trim_zoom_1/ --ckpt_file ./models/model-190532
+
+PYTORCH
+DOWNLOAD PYTORCH
+conda install pytorch torchvision cudatoolkit=9.0 -c pytorch
+RUN MODEL
+python3 run_inference.py --output-depth --pretrained ./models/dispnet_model_best.pth.tar --dataset-dir ./raw_data/cam_1_1_trim/ --output-dir ./depth_output_test/
+
+NOTES
+tgt_image spaced out to have src images on both sides
+dataloader/def unpack_image_sequence
+predict src pose, intrinsics to train
